@@ -4,104 +4,65 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-local function getSafeUIContainer()
-    local playerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui") or LocalPlayer:WaitForChild("PlayerGui", 5)
-    return playerGui
-end
-
-local ParentContainer = getSafeUIContainer()
-
-if not ParentContainer then
-    warn("Не удалось найти PlayerGui для отрисовки меню")
-    return
-end
-
-if ParentContainer:FindFirstChild("UltimateMM2_Menu") then
-    pcall(function() ParentContainer.UltimateMM2_Menu:Destroy() end)
+if PlayerGui:FindFirstChild("UltimateMM2_Menu") then
+    pcall(function() PlayerGui.UltimateMM2_Menu:Destroy() end)
 end
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "UltimateMM2_Menu"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = ParentContainer
-
-local MAIN_WIDTH = 450
-local MAIN_HEIGHT = 290
+ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, MAIN_WIDTH, 0, MAIN_HEIGHT)
-MainFrame.Position = UDim2.new(0.5, -MAIN_WIDTH / 2, 0.5, -MAIN_HEIGHT / 2)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 12, 22)
+MainFrame.Size = UDim2.new(0, 420, 0, 260)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -130)
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 15, 26)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
-MainFrame.ClipsDescendants = false
+MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
-local MenuScale = Instance.new("UIScale")
-MenuScale.Scale = 1
-MenuScale.Parent = MainFrame
-
 local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 8)
+MainCorner.CornerRadius = UDim.new(0, 10)
 MainCorner.Parent = MainFrame
 
 local UIStroke = Instance.new("UIStroke")
-UIStroke.Color = Color3.fromRGB(160, 80, 220)
+UIStroke.Color = Color3.fromRGB(150, 70, 210)
 UIStroke.Thickness = 1.5
 UIStroke.Parent = MainFrame
 
 -- Шапка
 local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 38)
-Header.BackgroundColor3 = Color3.fromRGB(22, 17, 32)
+Header.Size = UDim2.new(1, 0, 0, 36)
+Header.BackgroundColor3 = Color3.fromRGB(25, 20, 38)
 Header.BorderSizePixel = 0
-Header.Active = true
 Header.Parent = MainFrame
 
 local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 8)
+HeaderCorner.CornerRadius = UDim.new(0, 10)
 HeaderCorner.Parent = Header
-
-local LogoBox = Instance.new("Frame")
-LogoBox.Size = UDim2.new(0, 28, 0, 28)
-LogoBox.Position = UDim2.new(0, 6, 0.5, -14)
-LogoBox.BackgroundColor3 = Color3.fromRGB(130, 50, 200)
-LogoBox.BorderSizePixel = 0
-LogoBox.Parent = Header
-
-local LogoCorner = Instance.new("UICorner")
-LogoCorner.CornerRadius = UDim.new(0, 6)
-LogoCorner.Parent = LogoBox
-
-local LogoText = Instance.new("TextLabel")
-LogoText.Size = UDim2.new(1, 0, 1, 0)
-LogoText.BackgroundTransparency = 1
-LogoText.Text = "U"
-LogoText.TextColor3 = Color3.fromRGB(255, 255, 255)
-LogoText.TextSize = 18
-LogoText.Font = Enum.Font.GothamBold
-LogoText.Parent = LogoBox
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(0, 200, 1, 0)
-Title.Position = UDim2.new(0, 42, 0, 0)
+Title.Position = UDim2.new(0, 12, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "UltimateMM2 Hub"
+Title.Text = "Ultimate MM2 Hub"
 Title.TextColor3 = Color3.fromRGB(240, 220, 255)
-Title.TextSize = 15
+Title.TextSize = 14
 Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Header
 
 local MinimizeBtn = Instance.new("TextButton")
-MinimizeBtn.Size = UDim2.new(0, 32, 0, 28)
-MinimizeBtn.Position = UDim2.new(1, -38, 0.5, -14)
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(45, 30, 70)
+MinimizeBtn.Size = UDim2.new(0, 30, 0, 26)
+MinimizeBtn.Position = UDim2.new(1, -36, 0.5, -13)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(45, 30, 65)
 MinimizeBtn.BorderSizePixel = 0
-MinimizeBtn.Text = "—"
+MinimizeBtn.Text = "_"
 MinimizeBtn.TextColor3 = Color3.fromRGB(230, 170, 255)
-MinimizeBtn.TextSize = 16
+MinimizeBtn.TextSize = 14
 MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.Parent = Header
 
@@ -109,49 +70,35 @@ local MinCorner = Instance.new("UICorner")
 MinCorner.CornerRadius = UDim.new(0, 6)
 MinCorner.Parent = MinimizeBtn
 
-local currentIconSize = 50
+-- Кнопка открытия (если свернули)
 local OpenBtn = Instance.new("TextButton")
-OpenBtn.Size = UDim2.new(0, currentIconSize, 0, currentIconSize)
-OpenBtn.Position = UDim2.new(0.5, -currentIconSize / 2, 0.5, -currentIconSize / 2)
+OpenBtn.Size = UDim2.new(0, 45, 0, 45)
+OpenBtn.Position = UDim2.new(0.05, 0, 0.1, 0)
 OpenBtn.BackgroundColor3 = Color3.fromRGB(25, 18, 38)
 OpenBtn.BorderSizePixel = 0
 OpenBtn.Text = "U"
 OpenBtn.TextColor3 = Color3.fromRGB(200, 100, 255)
-OpenBtn.TextSize = 26
+OpenBtn.TextSize = 22
 OpenBtn.Font = Enum.Font.GothamBold
 OpenBtn.Visible = false
 OpenBtn.Active = true
+OpenBtn.Draggable = true
 OpenBtn.Parent = ScreenGui
 
 local OpenCorner = Instance.new("UICorner")
-OpenCorner.CornerRadius = UDim.new(0, 12)
+OpenCorner.CornerRadius = UDim.new(0, 10)
 OpenCorner.Parent = OpenBtn
 
-local OpenStroke = Instance.new("UIStroke")
-OpenStroke.Color = Color3.fromRGB(160, 80, 220)
-OpenStroke.Thickness = 2
-OpenStroke.Parent = OpenBtn
+-- Контейнер для переключения вкладок
+local ContentArea = Instance.new("Frame")
+ContentArea.Size = UDim2.new(1, -20, 1, -50)
+ContentArea.Position = UDim2.new(0, 10, 0, 42)
+ContentArea.BackgroundTransparency = 1
+ContentArea.Parent = MainFrame
 
-local TabsFrame = Instance.new("Frame")
-TabsFrame.Size = UDim2.new(1, -16, 0, 30)
-TabsFrame.Position = UDim2.new(0, 8, 0, 46)
-TabsFrame.BackgroundTransparency = 1
-TabsFrame.Parent = MainFrame
-
-local tabs = {"VISUALS", "COMBAT", "PLAYER", "SETTINGS"}
-local tabContentFrames = {}
-local tabButtons = {}
-
-local ContainersParent = Instance.new("Frame")
-ContainersParent.Size = UDim2.new(1, -16, 1, -84)
-ContainersParent.Position = UDim2.new(0, 8, 0, 80)
-ContainersParent.BackgroundTransparency = 1
-ContainersParent.ClipsDescendants = true
-ContainersParent.Parent = MainFrame
-
+-- Переменные функций
 local espEnabled = false
 local gunEspEnabled = false
-local combatAimEnabled = false
 local autoPickupGunEnabled = false
 local highlights = {}
 local gunHighlights = {}
@@ -175,57 +122,36 @@ end
 local function getGunDrop()
     local gun = Workspace:FindFirstChild("GunDrop")
     if gun then return gun end
-
     for _, child in ipairs(Workspace:GetChildren()) do
         if child.Name == "GunDrop" or (child:IsA("Tool") and string.find(string.lower(child.Name), "gun")) then
             return child
         end
     end
-
-    for _, desc in ipairs(Workspace:GetDescendants()) do
-        if desc.Name == "GunDrop" or (desc:IsA("TouchTransmitter") and desc.Parent and string.find(string.lower(desc.Parent.Name), "gun")) then
-            return desc:IsA("TouchTransmitter") and desc.Parent or desc
-        end
-    end
     return nil
 end
 
-local lastGunScan = 0
-local lastPickupTime = 0
-
+-- Основной цикл работы читов
 RunService.RenderStepped:Connect(function()
     pcall(function()
+        -- ESP Игроков
         if espEnabled then
             for _, p in ipairs(Players:GetPlayers()) do
                 if p ~= LocalPlayer and p.Character then
                     local char = p.Character
-                    local hl = highlights[p]
-                    
-                    if not hl or hl.Parent ~= char then
-                        if hl then pcall(function() hl:Destroy() end) end
-                        local success, newHl = pcall(function()
-                            local h = Instance.new("Highlight")
-                            h.Name = "MM2_ESP"
-                            h.FillTransparency = 0.4
-                            h.OutlineTransparency = 0
-                            h.Parent = char
-                            return h
-                        end)
-                        if success then highlights[p] = newHl end
+                    if not highlights[p] or highlights[p].Parent ~= char then
+                        if highlights[p] then pcall(function() highlights[p]:Destroy() end) end
+                        local hl = Instance.new("Highlight")
+                        hl.FillTransparency = 0.4
+                        hl.Parent = char
+                        highlights[p] = hl
                     end
-                    
-                    if highlights[p] then
-                        local role = getPlayerRole(p)
-                        if role == "Murderer" then
-                            highlights[p].FillColor = Color3.fromRGB(255, 40, 40)
-                            highlights[p].OutlineColor = Color3.fromRGB(255, 255, 255)
-                        elseif role == "Sheriff" then
-                            highlights[p].FillColor = Color3.fromRGB(40, 120, 255)
-                            highlights[p].OutlineColor = Color3.fromRGB(255, 255, 255)
-                        else
-                            highlights[p].FillColor = Color3.fromRGB(40, 255, 40)
-                            highlights[p].OutlineColor = Color3.fromRGB(255, 255, 255)
-                        end
+                    local role = getPlayerRole(p)
+                    if role == "Murderer" then
+                        highlights[p].FillColor = Color3.fromRGB(255, 40, 40)
+                    elseif role == "Sheriff" then
+                        highlights[p].FillColor = Color3.fromRGB(40, 120, 255)
+                    else
+                        highlights[p].FillColor = Color3.fromRGB(40, 255, 40)
                     end
                 end
             end
@@ -236,29 +162,21 @@ RunService.RenderStepped:Connect(function()
             end
         end
 
+        -- Gun ESP
         if gunEspEnabled then
-            if tick() - lastGunScan > 0.3 then
-                lastGunScan = tick()
-                local gunObj = getGunDrop()
-                
-                if gunObj then
-                    if not gunHighlights[gunObj] or gunHighlights[gunObj].Parent ~= gunObj then
-                        pcall(function()
-                            local ghl = Instance.new("Highlight")
-                            ghl.Name = "Gun_ESP"
-                            ghl.FillColor = Color3.fromRGB(255, 215, 0)
-                            ghl.OutlineColor = Color3.fromRGB(255, 255, 255)
-                            ghl.FillTransparency = 0.1
-                            ghl.OutlineTransparency = 0
-                            ghl.Parent = gunObj
-                            gunHighlights[gunObj] = ghl
-                        end)
-                    end
-                else
-                    for obj, ghl in pairs(gunHighlights) do
-                        if ghl then pcall(function() ghl:Destroy() end) end
-                        gunHighlights[obj] = nil
-                    end
+            local gunObj = getGunDrop()
+            if gunObj then
+                if not gunHighlights[gunObj] or gunHighlights[gunObj].Parent ~= gunObj then
+                    local ghl = Instance.new("Highlight")
+                    ghl.FillColor = Color3.fromRGB(255, 215, 0)
+                    ghl.FillTransparency = 0.2
+                    ghl.Parent = gunObj
+                    gunHighlights[gunObj] = ghl
+                end
+            else
+                for obj, ghl in pairs(gunHighlights) do
+                    if ghl then pcall(function() ghl:Destroy() end) end
+                    gunHighlights[obj] = nil
                 end
             end
         else
@@ -268,17 +186,85 @@ RunService.RenderStepped:Connect(function()
             end
         end
 
-        if autoPickupGunEnabled and tick() - lastPickupTime > 0.4 then
+        -- Auto Pickup
+        if autoPickupGunEnabled then
             local gunObj = getGunDrop()
             if gunObj and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 local hrp = LocalPlayer.Character.HumanoidRootPart
                 local gunPart = gunObj:IsA("BasePart") and gunObj or gunObj:FindFirstChildWhichIsA("BasePart")
-                
                 if gunPart then
-                    lastPickupTime = tick()
-                    local oldCFrame = hrp.CFrame
-                    
-                    pcall(function()
+                    local oldPos = hrp.CFrame
+                    hrp.CFrame = gunPart.CFrame
+                    task.wait(0.05)
+                    if hrp and hrp.Parent then hrp.CFrame = oldPos end
+                end
+            end
+        end
+    end)
+end)
+
+-- Функция создания переключателей (тогглов)
+local function createToggle(name, posY, callback)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, 0, 0, 38)
+    row.Position = UDim2.new(0, 0, 0, posY)
+    row.BackgroundTransparency = 1
+    row.Parent = ContentArea
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0, 300, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.TextColor3 = Color3.fromRGB(220, 210, 235)
+    label.TextSize = 13
+    label.Font = Enum.Font.GothamMedium
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = row
+    
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Size = UDim2.new(0, 46, 0, 24)
+    toggleBtn.Position = UDim2.new(1, -46, 0.5, -12)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 30, 55)
+    toggleBtn.BorderSizePixel = 0
+    toggleBtn.Text = ""
+    toggleBtn.Parent = row
+    
+    local tCorner = Instance.new("UICorner")
+    tCorner.CornerRadius = UDim.new(1, 0)
+    tCorner.Parent = toggleBtn
+    
+    local state = false
+    toggleBtn.MouseButton1Click:Connect(function()
+        state = not state
+        toggleBtn.BackgroundColor3 = state and Color3.fromRGB(140, 60, 200) or Color3.fromRGB(40, 30, 55)
+        callback(state)
+    end)
+end
+
+-- Элементы управления в меню
+createToggle("ESP Игроков (Убийца / Шериф)", 10, function(state)
+    espEnabled = state
+end)
+
+createToggle("Gun ESP (Подсветка пистолета)", 55, function(state)
+    gunEspEnabled = state
+end)
+
+createToggle("Auto Pickup Gun (Авто-подбор оружия)", 100, function(state)
+    autoPickupGunEnabled = state
+end)
+
+-- Свернуть / Развернуть
+MinimizeBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    OpenBtn.Visible = true
+end)
+
+OpenBtn.MouseButton1Click:Connect(function()
+    OpenBtn.Visible = false
+    MainFrame.Visible = true
+end)
+            pcall(function()
                         if firetouchinterest then
                             firetouchinterest(hrp, gunPart, 0)
                             firetouchinterest(hrp, gunPart, 1)
