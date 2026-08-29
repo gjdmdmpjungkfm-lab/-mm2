@@ -21,7 +21,7 @@ end
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "UltimateMM2_Menu"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.DisplayOrder = 999999 -- Гарантирует отображение поверх всех окон
+ScreenGui.DisplayOrder = 999999
 ScreenGui.Parent = PlayerGui
 
 local MAIN_WIDTH = 450
@@ -160,13 +160,11 @@ ContainersParent.Parent = MainFrame
 
 -- Переменные функционала
 local espEnabled = false
-local gunEspEnabled = false
 local combatAimEnabled = false
 local autoPickGunEnabled = false
 local autoFarmCoinsEnabled = false
 
 local highlights = {}
-local gunHighlights = {}
 
 local function getPlayerRole(player)
     local char = player.Character
@@ -183,7 +181,20 @@ local function getPlayerRole(player)
     return "Innocent"
 end
 
--- Цикл работы ESP, AimBot и Auto-Pick
+-- Вспомогательная функция безопасного касания (для авто-фарма и подбора)
+local function touchPart(hrp, targetPart)
+    if not hrp or not targetPart then return end
+    if firetouchinterest then
+        pcall(function()
+            firetouchinterest(hrp, targetPart, 0)
+            firetouchinterest(hrp, targetPart, 1)
+        end)
+    else
+        hrp.CFrame = targetPart.CFrame
+    end
+end
+
+-- Цикл работы ESP и AimBot
 RunService.RenderStepped:Connect(function()
     if espEnabled then
         for _, p in ipairs(Players:GetPlayers()) do
@@ -221,28 +232,6 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    if gunEspEnabled then
-        for _, obj in ipairs(Workspace:GetChildren()) do
-            if obj.Name == "GunDrop" or (obj:IsA("Tool") and string.find(string.lower(obj.Name), "gun")) then
-                if not gunHighlights[obj] or gunHighlights[obj].Parent ~= obj then
-                    local ghl = Instance.new("Highlight")
-                    ghl.Name = "Gun_ESP"
-                    ghl.FillColor = Color3.fromRGB(255, 215, 0)
-                    ghl.OutlineColor = Color3.fromRGB(255, 255, 255)
-                    ghl.FillTransparency = 0.2
-                    ghl.OutlineTransparency = 0
-                    ghl.Parent = obj
-                    gunHighlights[obj] = ghl
-                end
-            end
-        end
-    else
-        for obj, ghl in pairs(gunHighlights) do
-            if ghl then pcall(function() ghl:Destroy() end) end
-            gunHighlights[obj] = nil
-        end
-    end
-
     if combatAimEnabled then
         pcall(function()
             local myRole = getPlayerRole(LocalPlayer)
@@ -269,48 +258,51 @@ RunService.RenderStepped:Connect(function()
             end
         end)
     end
+end)
 
-    if autoPickGunEnabled then
-        pcall(function()
-            local char = LocalPlayer.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                local hrp = char.HumanoidRootPart
-                for _, obj in ipairs(Workspace:GetChildren()) do
-                    if obj.Name == "GunDrop" then
-                        if firetouchinterest then
-                            firetouchinterest(hrp, obj, 0)
-                            firetouchinterest(hrp, obj, 1)
-                        else
-                            hrp.CFrame = obj.CFrame
+-- Исправленный и усиленный Auto Pick Gun (Авто-подбор оружия)
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if autoPickGunEnabled then
+            pcall(function()
+                local char = LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    local hrp = char.HumanoidRootPart
+                    
+                    for _, obj in ipairs(Workspace:GetDescendants()) do
+                        if autoPickGunEnabled and (obj.Name == "GunDrop" or obj.Name == "GunServer") then
+                            local targetPart = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+                            if targetPart then
+                                touchPart(hrp, targetPart)
+                            end
                         end
                     end
                 end
-            end
-        end)
+            end)
+        end
     end
 end)
 
--- Авто-фарм монет
+-- Исправленный Auto Farm Coins (Авто-фарм монет)
 task.spawn(function()
     while true do
-        task.wait(0.2)
+        task.wait(0.15)
         if autoFarmCoinsEnabled then
             pcall(function()
                 local char = LocalPlayer.Character
                 if char and char:FindFirstChild("HumanoidRootPart") then
                     local hrp = char.HumanoidRootPart
-                    local coinContainer = Workspace:FindFirstChild("Normal") or Workspace:FindFirstChild("CoinContainer") or Workspace
                     
-                    for _, v in ipairs(coinContainer:GetDescendants()) do
-                        if autoFarmCoinsEnabled and (v.Name == "Coin_Sub" or v.Name == "Coin" or v.Name == "Snowflake") then
-                            local touchPart = v:IsA("BasePart") and v or v:FindFirstChildWhichIsA("BasePart")
-                            if touchPart then
-                                if firetouchinterest then
-                                    firetouchinterest(hrp, touchPart, 0)
-                                    firetouchinterest(hrp, touchPart, 1)
-                                else
-                                    hrp.CFrame = touchPart.CFrame
-                                end
+                    -- Рекурсивный поиск монет по всем возможным папкам и карте
+                    for _, item in ipairs(Workspace:GetDescendants()) do
+                        if not autoFarmCoinsEnabled then break end
+                        
+                        local itemName = item.Name
+                        if itemName == "Coin_Sub" or itemName == "Coin" or itemName == "Snowflake" or itemName == "Candy" then
+                            local part = item:IsA("BasePart") and item or item:FindFirstChildWhichIsA("BasePart")
+                            if part and part.Parent then
+                                touchPart(hrp, part)
                                 task.wait(0.05)
                             end
                         end
@@ -321,7 +313,7 @@ task.spawn(function()
     end
 end)
 
--- Исправленная функция нажатия (только Activated с задержкой, чтобы исключить двойной клик)
+-- Обработка нажатий
 local function bindButton(button, callback)
     local lastClick = 0
     button.Activated:Connect(function()
@@ -350,7 +342,7 @@ local function createToggle(parent, titleText, posY, callback)
     label.Font = Enum.Font.GothamMedium
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.ZIndex = 4
-    label.Active = false -- Не блокирует клики
+    label.Active = false
     label.Parent = row
     
     local toggleBtn = Instance.new("TextButton")
@@ -373,7 +365,7 @@ local function createToggle(parent, titleText, posY, callback)
     circle.BackgroundColor3 = Color3.fromRGB(200, 180, 220)
     circle.BorderSizePixel = 0
     circle.ZIndex = 6
-    circle.Active = false -- Не блокирует клик по кнопке под ним
+    circle.Active = false
     circle.Parent = toggleBtn
     
     local cCorner = Instance.new("UICorner")
@@ -427,10 +419,6 @@ for i, tabName in ipairs(tabs) do
     if tabName == "VISUALS" then
         createToggle(container, "ESP (Убийца / Шериф)", 10, function(state)
             espEnabled = state
-        end)
-
-        createToggle(container, "Gun ESP (Подсветка оружия)", 55, function(state)
-            gunEspEnabled = state
         end)
 
     elseif tabName == "COMBAT" then
@@ -554,4 +542,4 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-print("[UltimateMM2 Hub]: Успешно загружен!")
+print("[UltimateMM2 Hub]: Успешно обновлён!")
