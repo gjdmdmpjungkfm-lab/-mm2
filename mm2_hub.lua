@@ -34,7 +34,8 @@ MainFrame.BackgroundColor3 = Color3.fromRGB(15, 12, 22)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.ClipsDescendants = false
-MainFrame.Visible = true -- Явно включаем видимость при старте
+MainFrame.Visible = true
+MainFrame.ZIndex = 1
 MainFrame.Parent = ScreenGui
 
 local MenuScale = Instance.new("UIScale")
@@ -56,6 +57,7 @@ Header.Size = UDim2.new(1, 0, 0, 38)
 Header.BackgroundColor3 = Color3.fromRGB(22, 17, 32)
 Header.BorderSizePixel = 0
 Header.Active = true
+Header.ZIndex = 2
 Header.Parent = MainFrame
 
 local HeaderCorner = Instance.new("UICorner")
@@ -67,6 +69,7 @@ LogoBox.Size = UDim2.new(0, 28, 0, 28)
 LogoBox.Position = UDim2.new(0, 6, 0.5, -14)
 LogoBox.BackgroundColor3 = Color3.fromRGB(130, 50, 200)
 LogoBox.BorderSizePixel = 0
+LogoBox.ZIndex = 3
 LogoBox.Parent = Header
 
 local LogoCorner = Instance.new("UICorner")
@@ -80,6 +83,7 @@ LogoText.Text = "U"
 LogoText.TextColor3 = Color3.fromRGB(255, 255, 255)
 LogoText.TextSize = 18
 LogoText.Font = Enum.Font.GothamBold
+LogoText.ZIndex = 4
 LogoText.Parent = LogoBox
 
 local Title = Instance.new("TextLabel")
@@ -91,6 +95,7 @@ Title.TextColor3 = Color3.fromRGB(240, 220, 255)
 Title.TextSize = 15
 Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.ZIndex = 3
 Title.Parent = Header
 
 local MinimizeBtn = Instance.new("TextButton")
@@ -102,6 +107,7 @@ MinimizeBtn.Text = "—"
 MinimizeBtn.TextColor3 = Color3.fromRGB(230, 170, 255)
 MinimizeBtn.TextSize = 16
 MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.ZIndex = 5
 MinimizeBtn.Parent = Header
 
 local MinCorner = Instance.new("UICorner")
@@ -112,7 +118,7 @@ MinCorner.Parent = MinimizeBtn
 local currentIconSize = 50
 local OpenBtn = Instance.new("TextButton")
 OpenBtn.Size = UDim2.new(0, currentIconSize, 0, currentIconSize)
-OpenBtn.Position = UDim2.new(0.1, 0, 0.2, 0) -- Сдвинуто в верхний левый угол, чтобы не перекрывать центр
+OpenBtn.Position = UDim2.new(0.1, 0, 0.2, 0)
 OpenBtn.BackgroundColor3 = Color3.fromRGB(25, 18, 38)
 OpenBtn.BorderSizePixel = 0
 OpenBtn.Text = "U"
@@ -121,6 +127,7 @@ OpenBtn.TextSize = 26
 OpenBtn.Font = Enum.Font.GothamBold
 OpenBtn.Visible = false
 OpenBtn.Active = true
+OpenBtn.ZIndex = 100
 OpenBtn.Parent = ScreenGui
 
 local OpenCorner = Instance.new("UICorner")
@@ -136,6 +143,7 @@ local TabsFrame = Instance.new("Frame")
 TabsFrame.Size = UDim2.new(1, -16, 0, 30)
 TabsFrame.Position = UDim2.new(0, 8, 0, 46)
 TabsFrame.BackgroundTransparency = 1
+TabsFrame.ZIndex = 2
 TabsFrame.Parent = MainFrame
 
 local tabs = {"VISUALS", "COMBAT", "PLAYER", "SETTINGS"}
@@ -147,6 +155,7 @@ ContainersParent.Size = UDim2.new(1, -16, 1, -84)
 ContainersParent.Position = UDim2.new(0, 8, 0, 80)
 ContainersParent.BackgroundTransparency = 1
 ContainersParent.ClipsDescendants = true
+ContainersParent.ZIndex = 2
 ContainersParent.Parent = MainFrame
 
 -- Переменные функционала
@@ -312,9 +321,15 @@ task.spawn(function()
     end
 end)
 
+-- Исправленная функция нажатия (только Activated с задержкой, чтобы исключить двойной клик)
 local function bindButton(button, callback)
-    button.MouseButton1Click:Connect(callback)
-    button.Activated:Connect(callback)
+    local lastClick = 0
+    button.Activated:Connect(function()
+        if tick() - lastClick > 0.15 then
+            lastClick = tick()
+            callback()
+        end
+    end)
 end
 
 local function createToggle(parent, titleText, posY, callback)
@@ -322,6 +337,7 @@ local function createToggle(parent, titleText, posY, callback)
     row.Size = UDim2.new(1, -20, 0, 40)
     row.Position = UDim2.new(0, 10, 0, posY)
     row.BackgroundTransparency = 1
+    row.ZIndex = 3
     row.Parent = parent
     
     local label = Instance.new("TextLabel")
@@ -333,6 +349,8 @@ local function createToggle(parent, titleText, posY, callback)
     label.TextSize = 14
     label.Font = Enum.Font.GothamMedium
     label.TextXAlignment = Enum.TextXAlignment.Left
+    label.ZIndex = 4
+    label.Active = false -- Не блокирует клики
     label.Parent = row
     
     local toggleBtn = Instance.new("TextButton")
@@ -341,6 +359,8 @@ local function createToggle(parent, titleText, posY, callback)
     toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 35, 65)
     toggleBtn.BorderSizePixel = 0
     toggleBtn.Text = ""
+    toggleBtn.ZIndex = 5
+    toggleBtn.Active = true
     toggleBtn.Parent = row
     
     local tCorner = Instance.new("UICorner")
@@ -352,6 +372,8 @@ local function createToggle(parent, titleText, posY, callback)
     circle.Position = UDim2.new(0, 3, 0.5, -11)
     circle.BackgroundColor3 = Color3.fromRGB(200, 180, 220)
     circle.BorderSizePixel = 0
+    circle.ZIndex = 6
+    circle.Active = false -- Не блокирует клик по кнопке под ним
     circle.Parent = toggleBtn
     
     local cCorner = Instance.new("UICorner")
@@ -384,6 +406,8 @@ for i, tabName in ipairs(tabs) do
     btn.TextColor3 = (i == 1) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 130, 180)
     btn.TextSize = 11
     btn.Font = Enum.Font.GothamBold
+    btn.ZIndex = 3
+    btn.Active = true
     btn.Parent = TabsFrame
     
     local corner = Instance.new("UICorner")
@@ -397,6 +421,7 @@ for i, tabName in ipairs(tabs) do
     container.BackgroundTransparency = 1
     container.BorderSizePixel = 0
     container.Visible = (i == 1)
+    container.ZIndex = 2
     container.Parent = ContainersParent
     
     if tabName == "VISUALS" then
@@ -432,6 +457,8 @@ for i, tabName in ipairs(tabs) do
         scaleLabel.TextSize = 14
         scaleLabel.Font = Enum.Font.GothamMedium
         scaleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        scaleLabel.ZIndex = 4
+        scaleLabel.Active = false
         scaleLabel.Parent = container
         
         local minusBtn = Instance.new("TextButton")
@@ -443,6 +470,8 @@ for i, tabName in ipairs(tabs) do
         minusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         minusBtn.TextSize = 22
         minusBtn.Font = Enum.Font.GothamBold
+        minusBtn.ZIndex = 5
+        minusBtn.Active = true
         minusBtn.Parent = container
         
         local plusBtn = Instance.new("TextButton")
@@ -454,6 +483,8 @@ for i, tabName in ipairs(tabs) do
         plusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         plusBtn.TextSize = 20
         plusBtn.Font = Enum.Font.GothamBold
+        plusBtn.ZIndex = 5
+        plusBtn.Active = true
         plusBtn.Parent = container
 
         bindButton(plusBtn, function()
