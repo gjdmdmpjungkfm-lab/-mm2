@@ -172,7 +172,6 @@ local function getPlayerRole(player)
     return "Innocent"
 end
 
--- Расширенная функция поиска выпавшего пистолета
 local function getGunDrop()
     local gun = Workspace:FindFirstChild("GunDrop")
     if gun then return gun end
@@ -183,7 +182,6 @@ local function getGunDrop()
         end
     end
 
-    -- Дополнительный поиск в глубоких контейнерах карт
     for _, desc in ipairs(Workspace:GetDescendants()) do
         if desc.Name == "GunDrop" or (desc:IsA("TouchTransmitter") and desc.Parent and string.find(string.lower(desc.Parent.Name), "gun")) then
             return desc:IsA("TouchTransmitter") and desc.Parent or desc
@@ -197,7 +195,6 @@ local lastPickupTime = 0
 
 RunService.RenderStepped:Connect(function()
     pcall(function()
-        -- ESP Игроков
         if espEnabled then
             for _, p in ipairs(Players:GetPlayers()) do
                 if p ~= LocalPlayer and p.Character then
@@ -239,7 +236,6 @@ RunService.RenderStepped:Connect(function()
             end
         end
 
-        -- ESP Выпавшего оружия
         if gunEspEnabled then
             if tick() - lastGunScan > 0.3 then
                 lastGunScan = tick()
@@ -272,12 +268,277 @@ RunService.RenderStepped:Connect(function()
             end
         end
 
-        -- Auto Pickup Gun
         if autoPickupGunEnabled and tick() - lastPickupTime > 0.4 then
             local gunObj = getGunDrop()
             if gunObj and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 local hrp = LocalPlayer.Character.HumanoidRootPart
                 local gunPart = gunObj:IsA("BasePart") and gunObj or gunObj:FindFirstChildWhichIsA("BasePart")
+                
+                if gunPart then
+                    lastPickupTime = tick()
+                    local oldCFrame = hrp.CFrame
+                    
+                    pcall(function()
+                        if firetouchinterest then
+                            firetouchinterest(hrp, gunPart, 0)
+                            firetouchinterest(hrp, gunPart, 1)
+                        else
+                            hrp.CFrame = gunPart.CFrame
+                            task.delay(0.05, function()
+                                if hrp and hrp.Parent then hrp.CFrame = oldCFrame end
+                            end)
+                        end
+                    end)
+                end
+            end
+        end
+
+        if combatAimEnabled then
+            local myRole = getPlayerRole(LocalPlayer)
+            if myRole == "Murderer" or myRole == "Sheriff" then
+                local camera = Workspace.CurrentCamera
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        local targetRole = getPlayerRole(p)
+                        local shouldTarget = false
+                        
+                        if myRole == "Murderer" and targetRole == "Sheriff" then
+                            shouldTarget = true
+                        elseif myRole == "Sheriff" and targetRole == "Murderer" then
+                            shouldTarget = true
+                        end
+                        
+                        if shouldTarget then
+                            local targetPos = p.Character.HumanoidRootPart.Position
+                            camera.CFrame = CFrame.new(camera.CFrame.Position, targetPos)
+                            break
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+Players.PlayerRemoving:Connect(function(p)
+    if highlights[p] then
+        pcall(function() highlights[p]:Destroy() end)
+        highlights[p] = nil
+    end
+end)
+
+local function createToggle(parent, titleText, posY, callback)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, -20, 0, 40)
+    row.Position = UDim2.new(0, 10, 0, posY)
+    row.BackgroundTransparency = 1
+    row.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0, 240, 1, 0)
+    label.Position = UDim2.new(0, 0, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = titleText
+    label.TextColor3 = Color3.fromRGB(230, 220, 245)
+    label.TextSize = 14
+    label.Font = Enum.Font.GothamMedium
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = row
+    
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Size = UDim2.new(0, 52, 0, 28)
+    toggleBtn.Position = UDim2.new(1, -52, 0.5, -14)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 35, 65)
+    toggleBtn.BorderSizePixel = 0
+    toggleBtn.Text = ""
+    toggleBtn.Parent = row
+    
+    local tCorner = Instance.new("UICorner")
+    tCorner.CornerRadius = UDim.new(1, 0)
+    tCorner.Parent = toggleBtn
+    
+    local circle = Instance.new("Frame")
+    circle.Size = UDim2.new(0, 22, 0, 22)
+    circle.Position = UDim2.new(0, 3, 0.5, -11)
+    circle.BackgroundColor3 = Color3.fromRGB(200, 180, 220)
+    circle.BorderSizePixel = 0
+    circle.Parent = toggleBtn
+    
+    local cCorner = Instance.new("UICorner")
+    cCorner.CornerRadius = UDim.new(1, 0)
+    cCorner.Parent = circle
+    
+    local state = false
+    toggleBtn.MouseButton1Click:Connect(function()
+        state = not state
+        if state then
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(150, 70, 220)
+            circle.Position = UDim2.new(1, -25, 0.5, -11)
+            circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        else
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 35, 65)
+            circle.Position = UDim2.new(0, 3, 0.5, -11)
+            circle.BackgroundColor3 = Color3.fromRGB(200, 180, 220)
+        end
+        callback(state)
+    end)
+end
+
+for i, tabName in ipairs(tabs) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.235, 0, 1, 0)
+    btn.Position = UDim2.new((i - 1) * 0.255, 0, 0, 0)
+    btn.BackgroundColor3 = (i == 1) and Color3.fromRGB(75, 35, 125) or Color3.fromRGB(22, 18, 32)
+    btn.BorderSizePixel = 0
+    btn.Text = tabName
+    btn.TextColor3 = (i == 1) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 130, 180)
+    btn.TextSize = 11
+    btn.Font = Enum.Font.GothamBold
+    btn.Parent = TabsFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = btn
+    
+    tabButtons[tabName] = btn
+
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, 0, 1, 0)
+    container.BackgroundTransparency = 1
+    container.BorderSizePixel = 0
+    container.Visible = (i == 1)
+    container.Parent = ContainersParent
+    
+    if tabName == "VISUALS" then
+        createToggle(container, "ESP (Убийца / Шериф)", 10, function(state)
+            espEnabled = state
+        end)
+
+        createToggle(container, "Gun ESP (Подсветка оружия)", 55, function(state)
+            gunEspEnabled = state
+        end)
+
+    elseif tabName == "COMBAT" then
+        createToggle(container, "Aim Bot (Авто-наведение)", 10, function(state)
+            combatAimEnabled = state
+        end)
+
+        createToggle(container, "Auto Pickup Gun (Авто-подбор)", 55, function(state)
+            autoPickupGunEnabled = state
+        end)
+
+    elseif tabName == "PLAYER" then
+        local pInfo = Instance.new("TextLabel")
+        pInfo.Size = UDim2.new(1, -20, 0, 30)
+        pInfo.Position = UDim2.new(0, 10, 0, 10)
+        pInfo.BackgroundTransparency = 1
+        pInfo.Text = "Настройки локального игрока"
+        pInfo.TextColor3 = Color3.fromRGB(210, 200, 230)
+        pInfo.TextSize = 14
+        pInfo.Font = Enum.Font.GothamMedium
+        pInfo.TextXAlignment = Enum.TextXAlignment.Left
+        pInfo.Parent = container
+
+    elseif tabName == "SETTINGS" then
+        local scaleLabel = Instance.new("TextLabel")
+        scaleLabel.Size = UDim2.new(0, 160, 0, 38)
+        scaleLabel.Position = UDim2.new(0, 10, 0, 10)
+        scaleLabel.BackgroundTransparency = 1
+        scaleLabel.Text = "Масштаб меню"
+        scaleLabel.TextColor3 = Color3.fromRGB(210, 200, 230)
+        scaleLabel.TextSize = 14
+        scaleLabel.Font = Enum.Font.GothamMedium
+        scaleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        scaleLabel.Parent = container
+        
+        local minusBtn = Instance.new("TextButton")
+        minusBtn.Size = UDim2.new(0, 54, 0, 38)
+        minusBtn.Position = UDim2.new(0, 190, 0, 10)
+        minusBtn.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
+        minusBtn.BorderSizePixel = 0
+        minusBtn.Text = "-"
+        minusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        minusBtn.TextSize = 22
+        minusBtn.Font = Enum.Font.GothamBold
+        minusBtn.Parent = container
+        
+        local mCorner = Instance.new("UICorner")
+        mCorner.CornerRadius = UDim.new(0, 6)
+        mCorner.Parent = minusBtn
+        
+        local plusBtn = Instance.new("TextButton")
+        plusBtn.Size = UDim2.new(0, 54, 0, 38)
+        plusBtn.Position = UDim2.new(0, 252, 0, 10)
+        plusBtn.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
+        plusBtn.BorderSizePixel = 0
+        plusBtn.Text = "+"
+        plusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        plusBtn.TextSize = 20
+        plusBtn.Font = Enum.Font.GothamBold
+        plusBtn.Parent = container
+        
+        local pCorner = Instance.new("UICorner")
+        pCorner.CornerRadius = UDim.new(0, 6)
+        pCorner.Parent = plusBtn
+
+        local iconLabel = Instance.new("TextLabel")
+        iconLabel.Size = UDim2.new(0, 160, 0, 38)
+        iconLabel.Position = UDim2.new(0, 10, 0, 60)
+        iconLabel.BackgroundTransparency = 1
+        iconLabel.Text = "Размер иконки"
+        iconLabel.TextColor3 = Color3.fromRGB(210, 200, 230)
+        iconLabel.TextSize = 14
+        iconLabel.Font = Enum.Font.GothamMedium
+        iconLabel.TextXAlignment = Enum.TextXAlignment.Left
+        iconLabel.Parent = container
+        
+        local iconMinus = Instance.new("TextButton")
+        iconMinus.Size = UDim2.new(0, 54, 0, 38)
+        iconMinus.Position = UDim2.new(0, 190, 0, 60)
+        iconMinus.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
+        iconMinus.BorderSizePixel = 0
+        iconMinus.Text = "-"
+        iconMinus.TextColor3 = Color3.fromRGB(255, 255, 255)
+        iconMinus.TextSize = 22
+        iconMinus.Font = Enum.Font.GothamBold
+        iconMinus.Parent = container
+        
+        local imCorner = Instance.new("UICorner")
+        imCorner.CornerRadius = UDim.new(0, 6)
+        imCorner.Parent = iconMinus
+        
+        local iconPlus = Instance.new("TextButton")
+        iconPlus.Size = UDim2.new(0, 54, 0, 38)
+        iconPlus.Position = UDim2.new(0, 252, 0, 60)
+        iconPlus.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
+        iconPlus.BorderSizePixel = 0
+        iconPlus.Text = "+"
+        iconPlus.TextColor3 = Color3.fromRGB(255, 255, 255)
+        iconPlus.TextSize = 20
+        iconPlus.Font = Enum.Font.GothamBold
+        iconPlus.Parent = container
+        
+        local ipCorner = Instance.new("UICorner")
+        ipCorner.CornerRadius = UDim.new(0, 6)
+        ipCorner.Parent = iconPlus
+
+        plusBtn.MouseButton1Click:Connect(function()
+            if MenuScale.Scale < 1.4 then MenuScale.Scale = MenuScale.Scale + 0.1 end
+        end)
+        
+        minusBtn.MouseButton1Click:Connect(function()
+            if MenuScale.Scale > 0.7 then MenuScale.Scale = MenuScale.Scale - 0.1 end
+        end)
+
+        iconPlus.MouseButton1Click:Connect(function()
+            if currentIconSize < 80 then
+                currentIconSize = currentIconSize + 8
+                OpenBtn.Size = UDim2.new(0, currentIconSize, 0, currentIconSize)
+            end
+        end)
+        
+        iconMinus.MouseButton1Click:Connect(function()
+            if currentIconSize > 40hIsA("BasePart")
                 
                 if gunPart then
                     lastPickupTime = tick()
