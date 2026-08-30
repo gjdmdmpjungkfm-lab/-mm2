@@ -12,7 +12,6 @@ end
 
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui", 10)
 
--- Очистка старого интерфейса
 if PlayerGui:FindFirstChild("UltimateMM2_Menu") then
     PlayerGui.UltimateMM2_Menu:Destroy()
 end
@@ -50,7 +49,6 @@ UIStroke.Color = Color3.fromRGB(160, 80, 220)
 UIStroke.Thickness = 1.5
 UIStroke.Parent = MainFrame
 
--- Шапка
 local Header = Instance.new("Frame")
 Header.Size = UDim2.new(1, 0, 0, 38)
 Header.BackgroundColor3 = Color3.fromRGB(22, 17, 32)
@@ -113,9 +111,9 @@ local MinCorner = Instance.new("UICorner")
 MinCorner.CornerRadius = UDim.new(0, 6)
 MinCorner.Parent = MinimizeBtn
 
--- Кнопка открытия
+local currentIconSize = 50
 local OpenBtn = Instance.new("TextButton")
-OpenBtn.Size = UDim2.new(0, 50, 0, 50)
+OpenBtn.Size = UDim2.new(0, currentIconSize, 0, currentIconSize)
 OpenBtn.Position = UDim2.new(0.1, 0, 0.2, 0)
 OpenBtn.BackgroundColor3 = Color3.fromRGB(25, 18, 38)
 OpenBtn.BorderSizePixel = 0
@@ -156,12 +154,10 @@ ContainersParent.ClipsDescendants = true
 ContainersParent.ZIndex = 2
 ContainersParent.Parent = MainFrame
 
--- Переменные функционала
 local espEnabled = false
 local combatAimEnabled = false
 local autoPickGunEnabled = false
 local autoFarmCoinsEnabled = false
-local farmSpeed = 10
 
 local highlights = {}
 
@@ -180,21 +176,21 @@ local function getPlayerRole(player)
     return "Innocent"
 end
 
--- Безопасный касатель объектов без крашей
-local function safeTouch(hrp, targetPart)
-    if not hrp or not targetPart or not targetPart.Parent then return end
-    pcall(function()
-        local touchFunc = (typeof(firetouchinterest) == "function" and firetouchinterest) or _G.firetouchinterest
-        if touchFunc then
-            touchFunc(hrp, targetPart, 0)
-            touchFunc(hrp, targetPart, 1)
-        else
+local function touchPart(hrp, targetPart)
+    if not hrp or not targetPart then return end
+    local fireTouch = (typeof(firetouchinterest) == "function" and firetouchinterest) or _G.firetouchinterest
+    if fireTouch then
+        pcall(function()
+            fireTouch(hrp, targetPart, 0)
+            fireTouch(hrp, targetPart, 1)
+        end)
+    else
+        pcall(function()
             hrp.CFrame = targetPart.CFrame
-        end
-    end)
+        end)
+    end
 end
 
--- Рендер ESP и AimBot
 RunService.RenderStepped:Connect(function()
     if espEnabled then
         for _, p in ipairs(Players:GetPlayers()) do
@@ -260,19 +256,21 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Авто-подбор оружия
 task.spawn(function()
     while true do
-        task.wait(0.3)
+        task.wait(0.1)
         if autoPickGunEnabled then
             pcall(function()
                 local char = LocalPlayer.Character
                 if char and char:FindFirstChild("HumanoidRootPart") then
                     local hrp = char.HumanoidRootPart
+                    
                     for _, obj in ipairs(Workspace:GetDescendants()) do
                         if autoPickGunEnabled and (obj.Name == "GunDrop" or obj.Name == "GunServer") then
-                            local part = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
-                            if part then safeTouch(hrp, part) end
+                            local targetPart = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+                            if targetPart then
+                                touchPart(hrp, targetPart)
+                            end
                         end
                     end
                 end
@@ -281,47 +279,54 @@ task.spawn(function()
     end
 end)
 
--- Полностью изолированный и оптимизированный автофарм
 task.spawn(function()
+    local function getCoinContainer()
+        local coinContainer = Workspace:FindFirstChild("CoinContainer", true)
+            or Workspace:FindFirstChild("BeachTokens", true)
+            or Workspace:FindFirstChild("SummerEvent", true)
+            or Workspace:FindFirstChild("Normal", true)
+        return coinContainer
+    end
+
     while true do
-        -- Динамическая скорость безопасного опроса (без фризов интерфейса)
-        local sleepTime = math.clamp(0.35 - (farmSpeed * 0.01), 0.05, 0.35)
-        task.wait(sleepTime)
-        
+        task.wait(0.1)
         if autoFarmCoinsEnabled then
             pcall(function()
                 local char = LocalPlayer.Character
-                if char and char:FindFirstChild("HumanoidRootPart") then
-                    local hrp = char.HumanoidRootPart
-                    
-                    -- Поиск папки монет в летнем обновлении или стандартной карте
-                    local coinContainer = Workspace:FindFirstChild("CoinContainer", true) 
-                        or Workspace:FindFirstChild("BeachTokens", true) 
-                        or Workspace:FindFirstChild("SummerEvent", true)
-                        or Workspace:FindFirstChild("Normal", true)
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                
+                if hrp then
+                    local container = getCoinContainer()
+                    local coinList = {}
 
-                    if coinContainer then
-                        for _, coin in ipairs(coinContainer:GetChildren()) do
-                            if not autoFarmCoinsEnabled then break end
-                            local part = coin:IsA("BasePart") and coin or coin:FindFirstChildWhichIsA("BasePart")
-                            if part then
-                                safeTouch(hrp, part)
-                                task.wait(sleepTime)
-                            end
-                        end
+                    if container then
+                        coinList = container:GetChildren()
                     else
-                        -- Резервный поиск
                         for _, item in ipairs(Workspace:GetDescendants()) do
-                            if not autoFarmCoinsEnabled then break end
                             local name = item.Name
-                            if name == "Coin_Server" or name == "Coin_Sub" or name == "Coin" or name == "BeachToken" or name == "BeachCoin" or name == "Token" then
-                                local part = item:IsA("BasePart") and item or item:FindFirstChildWhichIsA("BasePart")
-                                if part then
-                                    safeTouch(hrp, part)
-                                    task.wait(sleepTime)
-                                end
+                            if name == "Coin_Server" or name == "Coin_Sub" or name == "Coin" or name == "BeachToken" or name == "Token" then
+                                table.insert(coinList, item)
                             end
                         end
+                    end
+
+                    local closestCoin = nil
+                    local shortestDist = math.huge
+
+                    for _, coin in ipairs(coinList) do
+                        local part = coin:IsA("BasePart") and coin or coin:FindFirstChildWhichIsA("BasePart")
+                        if part and part.Parent then
+                            local dist = (hrp.Position - part.Position).Magnitude
+                            if dist < shortestDist then
+                                shortestDist = dist
+                                closestCoin = part
+                            end
+                        end
+                    end
+
+                    if closestCoin then
+                        touchPart(hrp, closestCoin)
+                        task.wait(0.08)
                     end
                 end
             end)
@@ -329,7 +334,6 @@ task.spawn(function()
     end
 end)
 
--- Хэндлер кликов
 local function bindButton(button, callback)
     local lastClick = 0
     button.Activated:Connect(function()
@@ -350,6 +354,7 @@ local function createToggle(parent, titleText, posY, callback)
     
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0, 240, 1, 0)
+    label.Position = UDim2.new(0, 0, 0, 0)
     label.BackgroundTransparency = 1
     label.Text = titleText
     label.TextColor3 = Color3.fromRGB(230, 220, 245)
@@ -357,6 +362,7 @@ local function createToggle(parent, titleText, posY, callback)
     label.Font = Enum.Font.GothamMedium
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.ZIndex = 4
+    label.Active = false
     label.Parent = row
     
     local toggleBtn = Instance.new("TextButton")
@@ -379,6 +385,7 @@ local function createToggle(parent, titleText, posY, callback)
     circle.BackgroundColor3 = Color3.fromRGB(200, 180, 220)
     circle.BorderSizePixel = 0
     circle.ZIndex = 6
+    circle.Active = false
     circle.Parent = toggleBtn
     
     local cCorner = Instance.new("UICorner")
@@ -398,85 +405,6 @@ local function createToggle(parent, titleText, posY, callback)
             circle.BackgroundColor3 = Color3.fromRGB(200, 180, 220)
         end
         callback(state)
-    end)
-end
-
-local function createSpeedControl(parent, titleText, posY, callback)
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, -20, 0, 40)
-    container.Position = UDim2.new(0, 10, 0, posY)
-    container.BackgroundTransparency = 1
-    container.ZIndex = 3
-    container.Parent = parent
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0, 160, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = titleText
-    label.TextColor3 = Color3.fromRGB(210, 200, 230)
-    label.TextSize = 14
-    label.Font = Enum.Font.GothamMedium
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.ZIndex = 4
-    label.Parent = container
-
-    local valueDisplay = Instance.new("TextLabel")
-    valueDisplay.Size = UDim2.new(0, 40, 1, 0)
-    valueDisplay.Position = UDim2.new(0, 165, 0, 0)
-    valueDisplay.BackgroundTransparency = 1
-    valueDisplay.Text = tostring(farmSpeed)
-    valueDisplay.TextColor3 = Color3.fromRGB(200, 100, 255)
-    valueDisplay.TextSize = 16
-    valueDisplay.Font = Enum.Font.GothamBold
-    valueDisplay.ZIndex = 4
-    valueDisplay.Parent = container
-
-    local minusBtn = Instance.new("TextButton")
-    minusBtn.Size = UDim2.new(0, 45, 0, 32)
-    minusBtn.Position = UDim2.new(1, -96, 0.5, -16)
-    minusBtn.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
-    minusBtn.BorderSizePixel = 0
-    minusBtn.Text = "-"
-    minusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    minusBtn.TextSize = 22
-    minusBtn.Font = Enum.Font.GothamBold
-    minusBtn.ZIndex = 5
-    minusBtn.Parent = container
-    
-    local mCorner = Instance.new("UICorner")
-    mCorner.CornerRadius = UDim.new(0, 6)
-    mCorner.Parent = minusBtn
-
-    local plusBtn = Instance.new("TextButton")
-    plusBtn.Size = UDim2.new(0, 45, 0, 32)
-    plusBtn.Position = UDim2.new(1, -45, 0.5, -16)
-    plusBtn.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
-    plusBtn.BorderSizePixel = 0
-    plusBtn.Text = "+"
-    plusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    plusBtn.TextSize = 20
-    plusBtn.Font = Enum.Font.GothamBold
-    plusBtn.ZIndex = 5
-    plusBtn.Parent = container
-
-    local pCorner = Instance.new("UICorner")
-    pCorner.CornerRadius = UDim.new(0, 6)
-    pCorner.Parent = plusBtn
-
-    bindButton(minusBtn, function()
-        if farmSpeed > 1 then
-            farmSpeed = farmSpeed - 1
-            valueDisplay.Text = tostring(farmSpeed)
-            callback(farmSpeed)
-        end
-    end)
-
-    bindButton(plusBtn, function()
-        if farmSpeed < 27 then
-            farmSpeed = farmSpeed + 1
-            valueDisplay.Text = tostring(farmSpeed)
-            callback(farmSpeed)
-        end
     end)
 end
 
@@ -523,12 +451,8 @@ for i, tabName in ipairs(tabs) do
         end)
 
     elseif tabName == "PLAYER" then
-        createToggle(container, "Auto Farm Coins (Фарм)", 10, function(state)
+        createToggle(container, "Auto Farm Coins (Фарм монет)", 10, function(state)
             autoFarmCoinsEnabled = state
-        end)
-
-        createSpeedControl(container, "Скорость фарма", 55, function(val)
-            farmSpeed = val
         end)
 
     elseif tabName == "SETTINGS" then
@@ -542,6 +466,7 @@ for i, tabName in ipairs(tabs) do
         scaleLabel.Font = Enum.Font.GothamMedium
         scaleLabel.TextXAlignment = Enum.TextXAlignment.Left
         scaleLabel.ZIndex = 4
+        scaleLabel.Active = false
         scaleLabel.Parent = container
         
         local minusBtn = Instance.new("TextButton")
@@ -554,6 +479,7 @@ for i, tabName in ipairs(tabs) do
         minusBtn.TextSize = 22
         minusBtn.Font = Enum.Font.GothamBold
         minusBtn.ZIndex = 5
+        minusBtn.Active = true
         minusBtn.Parent = container
         
         local plusBtn = Instance.new("TextButton")
@@ -566,7 +492,72 @@ for i, tabName in ipairs(tabs) do
         plusBtn.TextSize = 20
         plusBtn.Font = Enum.Font.GothamBold
         plusBtn.ZIndex = 5
+        plusBtn.Active = true
         plusBtn.Parent = container
 
         bindButton(plusBtn, function()
-      
+            if MenuScale.Scale < 1.4 then
+                MenuScale.Scale = MenuScale.Scale + 0.1
+            end
+        end)
+        
+        bindButton(minusBtn, function()
+            if MenuScale.Scale > 0.7 then
+                MenuScale.Scale = MenuScale.Scale - 0.1
+            end
+        end)
+    end
+
+    tabContentFrames[tabName] = container
+
+    bindButton(btn, function()
+        for name, frame in pairs(tabContentFrames) do
+            frame.Visible = (name == tabName)
+        end
+        for name, b in pairs(tabButtons) do
+            local active = (name == tabName)
+            b.BackgroundColor3 = active and Color3.fromRGB(75, 35, 125) or Color3.fromRGB(22, 18, 32)
+            b.TextColor3 = active and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 130, 180)
+        end
+    end)
+end
+
+bindButton(MinimizeBtn, function()
+    MainFrame.Visible = false
+    OpenBtn.Visible = true
+end)
+
+bindButton(OpenBtn, function()
+    OpenBtn.Visible = false
+    MainFrame.Visible = true
+end)
+
+local dragging, dragInput, dragStart, startPos
+Header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+    end
+end)
+
+Header.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+print("[UltimateMM2 Hub]: Loaded!")
