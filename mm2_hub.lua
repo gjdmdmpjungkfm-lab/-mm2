@@ -164,10 +164,10 @@ local autoPickGunEnabled = false
 
 -- Настройки Автофарма
 local autoFarmCoinsEnabled = false
-local farmSpeedDelay = 0.1 -- Скорость паузы (в секундах)
-local legitFarmEnabled = false -- Беспалевный сбор через плавно движение
-local avoidMurdererEnabled = false -- Уклонение от Убийцы
-local safeDistance = 25 -- Безопасное расстояние от убийцы
+local farmSpeedDelay = 0.1
+local legitFarmEnabled = false
+local avoidMurdererEnabled = false
+local safeDistance = 25
 
 local highlights = {}
 
@@ -186,12 +186,10 @@ local function getPlayerRole(player)
     return "Innocent"
 end
 
--- Вспомогательный метод движения к монете
 local function touchPart(hrp, targetPart)
     if not hrp or not targetPart or not targetPart.Parent then return end
 
     if legitFarmEnabled then
-        -- Легит режим: плавный перемещающий твин (беспалевно)
         local distance = (hrp.Position - targetPart.Position).Magnitude
         local tweenTime = math.clamp(distance / 28, 0.05, 0.4)
         
@@ -200,7 +198,6 @@ local function touchPart(hrp, targetPart)
         tween:Play()
         tween.Completed:Wait()
     else
-        -- Быстрый телепорт с помощью TouchInterest
         if firetouchinterest then
             pcall(function()
                 firetouchinterest(hrp, targetPart, 0)
@@ -212,7 +209,6 @@ local function touchPart(hrp, targetPart)
     end
 end
 
--- Проверка дистанции до Убийцы
 local function getMurdererHRP()
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
@@ -224,7 +220,6 @@ local function getMurdererHRP()
     return nil
 end
 
--- Логика визуалов и аимбота
 RunService.RenderStepped:Connect(function()
     if espEnabled then
         for _, p in ipairs(Players:GetPlayers()) do
@@ -290,7 +285,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Auto Pick Gun
 task.spawn(function()
     while true do
         task.wait(0.1)
@@ -313,7 +307,6 @@ task.spawn(function()
     end
 end)
 
--- ОБНОВЛЕННЫЙ Auto Farm Coins (с выбором скорости, избеганием Murderer и легит-сбором)
 task.spawn(function()
     while true do
         task.wait(farmSpeedDelay)
@@ -323,7 +316,6 @@ task.spawn(function()
                 if char and char:FindFirstChild("HumanoidRootPart") then
                     local hrp = char.HumanoidRootPart
                     
-                    -- Система уклонения от Убийцы
                     if avoidMurdererEnabled then
                         local mHrp = getMurdererHRP()
                         if mHrp then
@@ -369,7 +361,6 @@ task.spawn(function()
     end
 end)
 
--- UI Компоненты
 local function bindButton(button, callback)
     local lastClick = 0
     button.Activated:Connect(function()
@@ -440,7 +431,6 @@ local function createToggle(parent, titleText, posY, callback)
     end)
 end
 
--- Функция создания ползунка (Slider)
 local function createSlider(parent, titleText, posY, minVal, maxVal, defaultVal, callback)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -20, 0, 45)
@@ -513,7 +503,7 @@ local function createSlider(parent, titleText, posY, minVal, maxVal, defaultVal,
 
     UserInputService.InputChanged:Connect(function(input)
         if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-UpdateInput = updateInput(input)
+            updateInput(input)
         end
     end)
 
@@ -524,7 +514,6 @@ UpdateInput = updateInput(input)
     end)
 end
 
--- Рендер вкладок
 for i, tabName in ipairs(tabs) do
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.235, 0, 1, 0)
@@ -556,4 +545,15 @@ for i, tabName in ipairs(tabs) do
 
     elseif tabName == "COMBAT" then
         createToggle(container, "Aim Bot (Авто-наведение)", 10, function(state) combatAimEnabled = state end)
-        createToggle(container, "Auto Pick Gun (Авто-подбор)", 50, function(state) autoPickGunEnable
+        createToggle(container, "Auto Pick Gun (Авто-подбор)", 50, function(state) autoPickGunEnabled = state end)
+
+    elseif tabName == "PLAYER" then
+        createToggle(container, "Auto Farm Coins (Фарм монет)", 5, function(state) autoFarmCoinsEnabled = state end)
+        createToggle(container, "Легит режим (Плавный сбор)", 45, function(state) legitFarmEnabled = state end)
+        createToggle(container, "Избегать Убийцу (Avoid Murderer)", 85, function(state) avoidMurdererEnabled = state end)
+        
+        createSlider(container, "Задержка сбора", 125, 0.01, 0.50, 0.10, function(val)
+            farmSpeedDelay = val
+        end)
+
+    elseif tabName == "SETTINGS" th
