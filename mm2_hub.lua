@@ -2,10 +2,10 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Защита от запуска до загрузки интерфейса
 if not LocalPlayer then
     Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
     LocalPlayer = Players.LocalPlayer
@@ -13,7 +13,6 @@ end
 
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui", 10)
 
--- Удаление старого UI
 if PlayerGui:FindFirstChild("UltimateMM2_Menu") then
     PlayerGui.UltimateMM2_Menu:Destroy()
 end
@@ -25,7 +24,7 @@ ScreenGui.DisplayOrder = 999999
 ScreenGui.Parent = PlayerGui
 
 local MAIN_WIDTH = 450
-local MAIN_HEIGHT = 290
+local MAIN_HEIGHT = 350
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, MAIN_WIDTH, 0, MAIN_HEIGHT)
@@ -114,7 +113,7 @@ local MinCorner = Instance.new("UICorner")
 MinCorner.CornerRadius = UDim.new(0, 6)
 MinCorner.Parent = MinimizeBtn
 
--- Иконка открытия для мобильных устройств
+-- Иконка открытия
 local currentIconSize = 50
 local OpenBtn = Instance.new("TextButton")
 OpenBtn.Size = UDim2.new(0, currentIconSize, 0, currentIconSize)
@@ -158,11 +157,17 @@ ContainersParent.ClipsDescendants = true
 ContainersParent.ZIndex = 2
 ContainersParent.Parent = MainFrame
 
--- Переменные функционала
+-- Настройки и переменные
 local espEnabled = false
 local combatAimEnabled = false
 local autoPickGunEnabled = false
+
+-- Настройки Автофарма
 local autoFarmCoinsEnabled = false
+local farmSpeedDelay = 0.1 -- Скорость паузы (в секундах)
+local legitFarmEnabled = false -- Беспалевный сбор через плавно движение
+local avoidMurdererEnabled = false -- Уклонение от Убийцы
+local safeDistance = 25 -- Безопасное расстояние от убийцы
 
 local highlights = {}
 
@@ -181,20 +186,45 @@ local function getPlayerRole(player)
     return "Innocent"
 end
 
--- Вспомогательная функция безопасного касания (для авто-фарма и подбора)
+-- Вспомогательный метод движения к монете
 local function touchPart(hrp, targetPart)
-    if not hrp or not targetPart then return end
-    if firetouchinterest then
-        pcall(function()
-            firetouchinterest(hrp, targetPart, 0)
-            firetouchinterest(hrp, targetPart, 1)
-        end)
+    if not hrp or not targetPart or not targetPart.Parent then return end
+
+    if legitFarmEnabled then
+        -- Легит режим: плавный перемещающий твин (беспалевно)
+        local distance = (hrp.Position - targetPart.Position).Magnitude
+        local tweenTime = math.clamp(distance / 28, 0.05, 0.4)
+        
+        local tweenInfo = TweenInfo.new(tweenTime, Enum.EasingStyle.Linear)
+        local tween = TweenService:Create(hrp, tweenInfo, {CFrame = targetPart.CFrame})
+        tween:Play()
+        tween.Completed:Wait()
     else
-        hrp.CFrame = targetPart.CFrame
+        -- Быстрый телепорт с помощью TouchInterest
+        if firetouchinterest then
+            pcall(function()
+                firetouchinterest(hrp, targetPart, 0)
+                firetouchinterest(hrp, targetPart, 1)
+            end)
+        else
+            hrp.CFrame = targetPart.CFrame
+        end
     end
 end
 
--- Цикл работы ESP и AimBot
+-- Проверка дистанции до Убийцы
+local function getMurdererHRP()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            if getPlayerRole(p) == "Murderer" then
+                return p.Character.HumanoidRootPart
+            end
+        end
+    end
+    return nil
+end
+
+-- Логика визуалов и аимбота
 RunService.RenderStepped:Connect(function()
     if espEnabled then
         for _, p in ipairs(Players:GetPlayers()) do
@@ -260,7 +290,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Исправленный и усиленный Auto Pick Gun (Авто-подбор оружия)
+-- Auto Pick Gun
 task.spawn(function()
     while true do
         task.wait(0.1)
@@ -269,7 +299,6 @@ task.spawn(function()
                 local char = LocalPlayer.Character
                 if char and char:FindFirstChild("HumanoidRootPart") then
                     local hrp = char.HumanoidRootPart
-                    
                     for _, obj in ipairs(Workspace:GetDescendants()) do
                         if autoPickGunEnabled and (obj.Name == "GunDrop" or obj.Name == "GunServer") then
                             local targetPart = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
@@ -284,26 +313,53 @@ task.spawn(function()
     end
 end)
 
--- Исправленный Auto Farm Coins (Авто-фарм монет)
+-- ОБНОВЛЕННЫЙ Auto Farm Coins (с выбором скорости, избеганием Murderer и легит-сбором)
 task.spawn(function()
     while true do
-        task.wait(0.15)
+        task.wait(farmSpeedDelay)
         if autoFarmCoinsEnabled then
             pcall(function()
                 local char = LocalPlayer.Character
                 if char and char:FindFirstChild("HumanoidRootPart") then
                     local hrp = char.HumanoidRootPart
                     
-                    -- Рекурсивный поиск монет по всем возможным папкам и карте
-                    for _, item in ipairs(Workspace:GetDescendants()) do
-                        if not autoFarmCoinsEnabled then break end
-                        
-                        local itemName = item.Name
-                        if itemName == "Coin_Sub" or itemName == "Coin" or itemName == "Snowflake" or itemName == "Candy" then
-                            local part = item:IsA("BasePart") and item or item:FindFirstChildWhichIsA("BasePart")
-                            if part and part.Parent then
-                                touchPart(hrp, part)
-                                task.wait(0.05)
+                    -- Система уклонения от Убийцы
+                    if avoidMurdererEnabled then
+                        local mHrp = getMurdererHRP()
+                        if mHrp then
+                            local dist = (hrp.Position - mHrp.Position).Magnitude
+                            if dist < safeDistance then
+                                local escapeDir = (hrp.Position - mHrp.Position).Unit
+                                hrp.CFrame = CFrame.new(hrp.Position + escapeDir * 15)
+                                task.wait(0.2)
+                                return
+                            end
+                        end
+                    end
+
+                    local coinContainer = Workspace:FindFirstChild("CoinContainer", true)
+                    
+                    if coinContainer then
+                        for _, coin in ipairs(coinContainer:GetChildren()) do
+                            if not autoFarmCoinsEnabled then break end
+                            
+                            if coin.Name == "Coin_Server" or coin.Name == "Coin" or coin.Name == "Coin_Sub" then
+                                local targetPart = coin:IsA("BasePart") and coin or coin:FindFirstChildWhichIsA("BasePart")
+                                if targetPart and targetPart.Parent then
+                                    touchPart(hrp, targetPart)
+                                    task.wait(farmSpeedDelay)
+                                end
+                            end
+                        end
+                    else
+                        for _, obj in ipairs(Workspace:GetDescendants()) do
+                            if not autoFarmCoinsEnabled then break end
+                            if obj.Name == "Coin_Server" then
+                                local targetPart = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+                                if targetPart and targetPart.Parent then
+                                    touchPart(hrp, targetPart)
+                                    task.wait(farmSpeedDelay)
+                                end
                             end
                         end
                     end
@@ -313,7 +369,7 @@ task.spawn(function()
     end
 end)
 
--- Обработка нажатий
+-- UI Компоненты
 local function bindButton(button, callback)
     local lastClick = 0
     button.Activated:Connect(function()
@@ -326,7 +382,7 @@ end
 
 local function createToggle(parent, titleText, posY, callback)
     local row = Instance.new("Frame")
-    row.Size = UDim2.new(1, -20, 0, 40)
+    row.Size = UDim2.new(1, -20, 0, 35)
     row.Position = UDim2.new(0, 10, 0, posY)
     row.BackgroundTransparency = 1
     row.ZIndex = 3
@@ -334,25 +390,22 @@ local function createToggle(parent, titleText, posY, callback)
     
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0, 240, 1, 0)
-    label.Position = UDim2.new(0, 0, 0, 0)
     label.BackgroundTransparency = 1
     label.Text = titleText
     label.TextColor3 = Color3.fromRGB(230, 220, 245)
-    label.TextSize = 14
+    label.TextSize = 13
     label.Font = Enum.Font.GothamMedium
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.ZIndex = 4
-    label.Active = false
     label.Parent = row
     
     local toggleBtn = Instance.new("TextButton")
-    toggleBtn.Size = UDim2.new(0, 52, 0, 28)
-    toggleBtn.Position = UDim2.new(1, -52, 0.5, -14)
+    toggleBtn.Size = UDim2.new(0, 52, 0, 26)
+    toggleBtn.Position = UDim2.new(1, -52, 0.5, -13)
     toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 35, 65)
     toggleBtn.BorderSizePixel = 0
     toggleBtn.Text = ""
     toggleBtn.ZIndex = 5
-    toggleBtn.Active = true
     toggleBtn.Parent = row
     
     local tCorner = Instance.new("UICorner")
@@ -360,12 +413,11 @@ local function createToggle(parent, titleText, posY, callback)
     tCorner.Parent = toggleBtn
     
     local circle = Instance.new("Frame")
-    circle.Size = UDim2.new(0, 22, 0, 22)
-    circle.Position = UDim2.new(0, 3, 0.5, -11)
+    circle.Size = UDim2.new(0, 20, 0, 20)
+    circle.Position = UDim2.new(0, 3, 0.5, -10)
     circle.BackgroundColor3 = Color3.fromRGB(200, 180, 220)
     circle.BorderSizePixel = 0
     circle.ZIndex = 6
-    circle.Active = false
     circle.Parent = toggleBtn
     
     local cCorner = Instance.new("UICorner")
@@ -377,17 +429,102 @@ local function createToggle(parent, titleText, posY, callback)
         state = not state
         if state then
             toggleBtn.BackgroundColor3 = Color3.fromRGB(150, 70, 220)
-            circle.Position = UDim2.new(1, -25, 0.5, -11)
+            circle.Position = UDim2.new(1, -23, 0.5, -10)
             circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         else
             toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 35, 65)
-            circle.Position = UDim2.new(0, 3, 0.5, -11)
+            circle.Position = UDim2.new(0, 3, 0.5, -10)
             circle.BackgroundColor3 = Color3.fromRGB(200, 180, 220)
         end
         callback(state)
     end)
 end
 
+-- Функция создания ползунка (Slider)
+local function createSlider(parent, titleText, posY, minVal, maxVal, defaultVal, callback)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -20, 0, 45)
+    frame.Position = UDim2.new(0, 10, 0, posY)
+    frame.BackgroundTransparency = 1
+    frame.ZIndex = 3
+    frame.Parent = parent
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(0, 200, 0, 18)
+    title.BackgroundTransparency = 1
+    title.Text = titleText
+    title.TextColor3 = Color3.fromRGB(230, 220, 245)
+    title.TextSize = 13
+    title.Font = Enum.Font.GothamMedium
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.ZIndex = 4
+    title.Parent = frame
+
+    local valLabel = Instance.new("TextLabel")
+    valLabel.Size = UDim2.new(0, 60, 0, 18)
+    valLabel.Position = UDim2.new(1, -60, 0, 0)
+    valLabel.BackgroundTransparency = 1
+    valLabel.Text = string.format("%.2fs", defaultVal)
+    valLabel.TextColor3 = Color3.fromRGB(180, 150, 220)
+    valLabel.TextSize = 13
+    valLabel.Font = Enum.Font.GothamBold
+    valLabel.TextXAlignment = Enum.TextXAlignment.Right
+    valLabel.ZIndex = 4
+    valLabel.Parent = frame
+
+    local sliderBack = Instance.new("Frame")
+    sliderBack.Size = UDim2.new(1, 0, 0, 8)
+    sliderBack.Position = UDim2.new(0, 0, 0, 26)
+    sliderBack.BackgroundColor3 = Color3.fromRGB(45, 35, 65)
+    sliderBack.BorderSizePixel = 0
+    sliderBack.ZIndex = 4
+    sliderBack.Parent = frame
+
+    local sCorner = Instance.new("UICorner")
+    sCorner.CornerRadius = UDim.new(1, 0)
+    sCorner.Parent = sliderBack
+
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new((defaultVal - minVal) / (maxVal - minVal), 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(150, 70, 220)
+    fill.BorderSizePixel = 0
+    fill.ZIndex = 5
+    fill.Parent = sliderBack
+
+    local fCorner = Instance.new("UICorner")
+    fCorner.CornerRadius = UDim.new(1, 0)
+    fCorner.Parent = fill
+
+    local isDragging = false
+    local function updateInput(input)
+        local pos = math.clamp((input.Position.X - sliderBack.AbsolutePosition.X) / sliderBack.AbsoluteSize.X, 0, 1)
+        fill.Size = UDim2.new(pos, 0, 1, 0)
+        local val = minVal + (maxVal - minVal) * pos
+        valLabel.Text = string.format("%.2fs", val)
+        callback(val)
+    end
+
+    sliderBack.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            isDragging = true
+            updateInput(input)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+UpdateInput = updateInput(input)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            isDragging = false
+        end
+    end)
+end
+
+-- Рендер вкладок
 for i, tabName in ipairs(tabs) do
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.235, 0, 1, 0)
@@ -399,7 +536,6 @@ for i, tabName in ipairs(tabs) do
     btn.TextSize = 11
     btn.Font = Enum.Font.GothamBold
     btn.ZIndex = 3
-    btn.Active = true
     btn.Parent = TabsFrame
     
     local corner = Instance.new("UICorner")
@@ -411,135 +547,13 @@ for i, tabName in ipairs(tabs) do
     local container = Instance.new("Frame")
     container.Size = UDim2.new(1, 0, 1, 0)
     container.BackgroundTransparency = 1
-    container.BorderSizePixel = 0
     container.Visible = (i == 1)
     container.ZIndex = 2
     container.Parent = ContainersParent
     
     if tabName == "VISUALS" then
-        createToggle(container, "ESP (Убийца / Шериф)", 10, function(state)
-            espEnabled = state
-        end)
+        createToggle(container, "ESP (Убийца / Шериф)", 10, function(state) espEnabled = state end)
 
     elseif tabName == "COMBAT" then
-        createToggle(container, "Aim Bot (Авто-наведение)", 10, function(state)
-            combatAimEnabled = state
-        end)
-
-        createToggle(container, "Auto Pick Gun (Авто-подбор)", 55, function(state)
-            autoPickGunEnabled = state
-        end)
-
-    elseif tabName == "PLAYER" then
-        createToggle(container, "Auto Farm Coins (Фарм монет)", 10, function(state)
-            autoFarmCoinsEnabled = state
-        end)
-
-    elseif tabName == "SETTINGS" then
-        local scaleLabel = Instance.new("TextLabel")
-        scaleLabel.Size = UDim2.new(0, 160, 0, 38)
-        scaleLabel.Position = UDim2.new(0, 10, 0, 10)
-        scaleLabel.BackgroundTransparency = 1
-        scaleLabel.Text = "Масштаб меню"
-        scaleLabel.TextColor3 = Color3.fromRGB(210, 200, 230)
-        scaleLabel.TextSize = 14
-        scaleLabel.Font = Enum.Font.GothamMedium
-        scaleLabel.TextXAlignment = Enum.TextXAlignment.Left
-        scaleLabel.ZIndex = 4
-        scaleLabel.Active = false
-        scaleLabel.Parent = container
-        
-        local minusBtn = Instance.new("TextButton")
-        minusBtn.Size = UDim2.new(0, 54, 0, 38)
-        minusBtn.Position = UDim2.new(0, 190, 0, 10)
-        minusBtn.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
-        minusBtn.BorderSizePixel = 0
-        minusBtn.Text = "-"
-        minusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        minusBtn.TextSize = 22
-        minusBtn.Font = Enum.Font.GothamBold
-        minusBtn.ZIndex = 5
-        minusBtn.Active = true
-        minusBtn.Parent = container
-        
-        local plusBtn = Instance.new("TextButton")
-        plusBtn.Size = UDim2.new(0, 54, 0, 38)
-        plusBtn.Position = UDim2.new(0, 252, 0, 10)
-        plusBtn.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
-        plusBtn.BorderSizePixel = 0
-        plusBtn.Text = "+"
-        plusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        plusBtn.TextSize = 20
-        plusBtn.Font = Enum.Font.GothamBold
-        plusBtn.ZIndex = 5
-        plusBtn.Active = true
-        plusBtn.Parent = container
-
-        bindButton(plusBtn, function()
-            if MenuScale.Scale < 1.4 then
-                MenuScale.Scale = MenuScale.Scale + 0.1
-            end
-        end)
-        
-        bindButton(minusBtn, function()
-            if MenuScale.Scale > 0.7 then
-                MenuScale.Scale = MenuScale.Scale - 0.1
-            end
-        end)
-    end
-
-    tabContentFrames[tabName] = container
-
-    bindButton(btn, function()
-        for name, frame in pairs(tabContentFrames) do
-            frame.Visible = (name == tabName)
-        end
-        for name, b in pairs(tabButtons) do
-            local active = (name == tabName)
-            b.BackgroundColor3 = active and Color3.fromRGB(75, 35, 125) or Color3.fromRGB(22, 18, 32)
-            b.TextColor3 = active and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 130, 180)
-        end
-    end)
-end
-
--- Сворачивание и разворачивание
-bindButton(MinimizeBtn, function()
-    MainFrame.Visible = false
-    OpenBtn.Visible = true
-end)
-
-bindButton(OpenBtn, function()
-    OpenBtn.Visible = false
-    MainFrame.Visible = true
-end)
-
--- Перетаскивание для мобильных
-local dragging, dragInput, dragStart, startPos
-Header.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-    end
-end)
-
-Header.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
-    end
-end)
-
-print("[UltimateMM2 Hub]: Успешно обновлён!")
+        createToggle(container, "Aim Bot (Авто-наведение)", 10, function(state) combatAimEnabled = state end)
+        createToggle(container, "Auto Pick Gun (Авто-подбор)", 50, function(state) autoPickGunEnable
