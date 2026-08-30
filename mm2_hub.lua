@@ -156,7 +156,7 @@ ContainersParent.Parent = MainFrame
 
 local espEnabled = false
 local combatAimEnabled = false
-local autoPickGunEnabled = false
+autoPickGunEnabled = false
 local autoFarmCoinsEnabled = false
 local autoFarmToggleCallback = nil
 
@@ -179,17 +179,14 @@ end
 
 local function touchPart(hrp, targetPart)
     if not hrp or not targetPart then return end
-    local fireTouch = (typeof(firetouchinterest) == "function" and firetouchinterest) or _G.firetouchinterest
-    if fireTouch then
-        pcall(function()
-            fireTouch(hrp, targetPart, 0)
-            fireTouch(hrp, targetPart, 1)
-        end)
-    else
-        pcall(function()
+    pcall(function()
+        if firetouchinterest then
+            firetouchinterest(hrp, targetPart, 0)
+            firetouchinterest(hrp, targetPart, 1)
+        else
             hrp.CFrame = targetPart.CFrame
-        end)
-    end
+        end
+    end)
 end
 
 RunService.RenderStepped:Connect(function()
@@ -300,6 +297,8 @@ end
 local function moveToCoinSmooth(hrp, targetCFrame, moveSpeed)
     local startCFrame = hrp.CFrame
     local distance = (startCFrame.Position - targetCFrame.Position).Magnitude
+    if distance == 0 then return end
+    
     local duration = distance / moveSpeed
     local startTime = tick()
 
@@ -552,8 +551,7 @@ for i, tabName in ipairs(tabs) do
         minusBtn.Parent = container
         
         local plusBtn = Instance.new("TextButton")
-        plusBtn.Size = UDim2.new(0, 54, 0, 38)
-        plusBtn.Position = UDim2.new(0, 252, 0, 10)
+        plusBtn.Size = UDim2.new(0, 252, 0, 10)
         plusBtn.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
         plusBtn.BorderSizePixel = 0
         plusBtn.Text = "+"
@@ -562,4 +560,8 @@ for i, tabName in ipairs(tabs) do
         plusBtn.Font = Enum.Font.GothamBold
         plusBtn.ZIndex = 5
         plusBtn.Active = true
-        plusBtn.Parent =
+        plusBtn.Parent = container
+
+        bindButton(plusBtn, function()
+            if MenuScale.Scale < 1.4 then
+                MenuScale.Scale = MenuScal
