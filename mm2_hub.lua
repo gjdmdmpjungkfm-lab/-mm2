@@ -12,6 +12,7 @@ end
 
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui", 10)
 
+-- Очистка старого интерфейса
 if PlayerGui:FindFirstChild("UltimateMM2_Menu") then
     PlayerGui.UltimateMM2_Menu:Destroy()
 end
@@ -179,25 +180,21 @@ local function getPlayerRole(player)
     return "Innocent"
 end
 
--- Функция сбора
-local function collectItem(hrp, targetPart)
+-- Безопасный касатель объектов без крашей
+local function safeTouch(hrp, targetPart)
     if not hrp or not targetPart or not targetPart.Parent then return end
-    
-    local fireTouch = (typeof(firetouchinterest) == "function" and firetouchinterest) or _G.firetouchinterest
-    if fireTouch then
-        pcall(function()
-            fireTouch(hrp, targetPart, 0)
-            task.wait()
-            fireTouch(hrp, targetPart, 1)
-        end)
-    else
-        pcall(function()
+    pcall(function()
+        local touchFunc = (typeof(firetouchinterest) == "function" and firetouchinterest) or _G.firetouchinterest
+        if touchFunc then
+            touchFunc(hrp, targetPart, 0)
+            touchFunc(hrp, targetPart, 1)
+        else
             hrp.CFrame = targetPart.CFrame
-        end)
-    end
+        end
+    end)
 end
 
--- ESP & AimBot
+-- Рендер ESP и AimBot
 RunService.RenderStepped:Connect(function()
     if espEnabled then
         for _, p in ipairs(Players:GetPlayers()) do
@@ -266,7 +263,7 @@ end)
 -- Авто-подбор оружия
 task.spawn(function()
     while true do
-        task.wait(0.2)
+        task.wait(0.3)
         if autoPickGunEnabled then
             pcall(function()
                 local char = LocalPlayer.Character
@@ -275,7 +272,7 @@ task.spawn(function()
                     for _, obj in ipairs(Workspace:GetDescendants()) do
                         if autoPickGunEnabled and (obj.Name == "GunDrop" or obj.Name == "GunServer") then
                             local part = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
-                            if part then collectItem(hrp, part) end
+                            if part then safeTouch(hrp, part) end
                         end
                     end
                 end
@@ -284,55 +281,46 @@ task.spawn(function()
     end
 end)
 
--- Поиск валюты летнего обновления и обычных монет
-local function getSummerCoins()
-    local targets = {}
-    pcall(function()
-        -- Поиск в целевых папках карт
-        local coinContainer = Workspace:FindFirstChild("CoinContainer", true) 
-            or Workspace:FindFirstChild("BeachTokens", true) 
-            or Workspace:FindFirstChild("SummerEvent", true)
-            or Workspace:FindFirstChild("Normal", true)
-
-        if coinContainer then
-            for _, child in ipairs(coinContainer:GetChildren()) do
-                table.insert(targets, child)
-            end
-        else
-            -- Запасной алгоритм поиска по всей карте
-            for _, item in ipairs(Workspace:GetDescendants()) do
-                local name = item.Name
-                if name == "Coin_Server" or name == "Coin_Sub" or name == "Coin" 
-                or name == "BeachToken" or name == "BeachCoin" or name == "Token" 
-                or name == "BeachContainer" then
-                    table.insert(targets, item)
-                end
-            end
-        end
-    end)
-    return targets
-end
-
--- Автофарм для Летнего обновления
+-- Полностью изолированный и оптимизированный автофарм
 task.spawn(function()
     while true do
-        local delayStep = math.clamp(0.32 - (farmSpeed * 0.01), 0.02, 0.32)
-        task.wait(delayStep)
+        -- Динамическая скорость безопасного опроса (без фризов интерфейса)
+        local sleepTime = math.clamp(0.35 - (farmSpeed * 0.01), 0.05, 0.35)
+        task.wait(sleepTime)
         
         if autoFarmCoinsEnabled then
             pcall(function()
                 local char = LocalPlayer.Character
                 if char and char:FindFirstChild("HumanoidRootPart") then
                     local hrp = char.HumanoidRootPart
-                    local coinsList = getSummerCoins()
                     
-                    for _, coinObj in ipairs(coinsList) do
-                        if not autoFarmCoinsEnabled then break end
-                        
-                        local targetPart = coinObj:IsA("BasePart") and coinObj or coinObj:FindFirstChildWhichIsA("BasePart")
-                        if targetPart and targetPart.Parent then
-                            collectItem(hrp, targetPart)
-                            task.wait(delayStep)
+                    -- Поиск папки монет в летнем обновлении или стандартной карте
+                    local coinContainer = Workspace:FindFirstChild("CoinContainer", true) 
+                        or Workspace:FindFirstChild("BeachTokens", true) 
+                        or Workspace:FindFirstChild("SummerEvent", true)
+                        or Workspace:FindFirstChild("Normal", true)
+
+                    if coinContainer then
+                        for _, coin in ipairs(coinContainer:GetChildren()) do
+                            if not autoFarmCoinsEnabled then break end
+                            local part = coin:IsA("BasePart") and coin or coin:FindFirstChildWhichIsA("BasePart")
+                            if part then
+                                safeTouch(hrp, part)
+                                task.wait(sleepTime)
+                            end
+                        end
+                    else
+                        -- Резервный поиск
+                        for _, item in ipairs(Workspace:GetDescendants()) do
+                            if not autoFarmCoinsEnabled then break end
+                            local name = item.Name
+                            if name == "Coin_Server" or name == "Coin_Sub" or name == "Coin" or name == "BeachToken" or name == "BeachCoin" or name == "Token" then
+                                local part = item:IsA("BasePart") and item or item:FindFirstChildWhichIsA("BasePart")
+                                if part then
+                                    safeTouch(hrp, part)
+                                    task.wait(sleepTime)
+                                end
+                            end
                         end
                     end
                 end
@@ -341,7 +329,7 @@ task.spawn(function()
     end
 end)
 
--- Обработка кликов
+-- Хэндлер кликов
 local function bindButton(button, callback)
     local lastClick = 0
     button.Activated:Connect(function()
@@ -535,7 +523,7 @@ for i, tabName in ipairs(tabs) do
         end)
 
     elseif tabName == "PLAYER" then
-        createToggle(container, "Auto Farm (Summer Token)", 10, function(state)
+        createToggle(container, "Auto Farm Coins (Фарм)", 10, function(state)
             autoFarmCoinsEnabled = state
         end)
 
@@ -581,10 +569,4 @@ for i, tabName in ipairs(tabs) do
         plusBtn.Parent = container
 
         bindButton(plusBtn, function()
-            if MenuScale.Scale < 1.4 then
-                MenuScale.Scale = MenuScale.Scale + 0.1
-            end
-        end)
-        
-        bindButton(minusBtn, function()
- 
+      
