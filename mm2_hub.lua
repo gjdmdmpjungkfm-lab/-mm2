@@ -5,9 +5,7 @@ local Workspace = game:GetService("Workspace")
 local TweenService = game:GetService("TweenService")
 
 local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui") or LocalPlayer:WaitForChild("PlayerGui", 5)
-
-if not PlayerGui then return end
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 if PlayerGui:FindFirstChild("UltimateMM2_Menu") then
     PlayerGui.UltimateMM2_Menu:Destroy()
@@ -18,7 +16,6 @@ ScreenGui.Name = "UltimateMM2_Menu"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999999
 
--- Безопасное монтирование GUI для всех инжекторов
 if gethui then
     ScreenGui.Parent = gethui()
 else
@@ -52,7 +49,6 @@ UIStroke.Color = Color3.fromRGB(160, 80, 220)
 UIStroke.Thickness = 1.5
 UIStroke.Parent = MainFrame
 
--- Шапка
 local Header = Instance.new("Frame")
 Header.Size = UDim2.new(1, 0, 0, 38)
 Header.BackgroundColor3 = Color3.fromRGB(22, 17, 32)
@@ -115,7 +111,6 @@ local MinCorner = Instance.new("UICorner")
 MinCorner.CornerRadius = UDim.new(0, 6)
 MinCorner.Parent = MinimizeBtn
 
--- Кнопка открытия
 local OpenBtn = Instance.new("TextButton")
 OpenBtn.Size = UDim2.new(0, 50, 0, 50)
 OpenBtn.Position = UDim2.new(0.1, 0, 0.2, 0)
@@ -158,7 +153,6 @@ ContainersParent.ClipsDescendants = true
 ContainersParent.ZIndex = 2
 ContainersParent.Parent = MainFrame
 
--- Настройки
 local espEnabled = false
 local combatAimEnabled = false
 local autoPickGunEnabled = false
@@ -560,4 +554,10 @@ for i, tabName in ipairs(tabs) do
         plusBtn.TextSize = 20
         plusBtn.Font = Enum.Font.GothamBold
         plusBtn.ZIndex = 5
-        plusBtn.
+        plusBtn.Parent = container
+
+        bindButton(plusBtn, function()
+            if MenuScale.Scale < 1.4 then MenuScale.Scale = MenuScale.Scale + 0.1 end
+        end)
+        
+        bind
