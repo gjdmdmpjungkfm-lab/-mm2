@@ -198,7 +198,6 @@ h.InputEnded:Connect(function(i)
         if di then di:Disconnect() end
     end
 end)
-
 local mv = true
 local function tm()
     mv = not mv
@@ -553,133 +552,266 @@ for i, tn in ipairs(tabs) do
     c.Parent = cp
     tcf[tn] = c
 
+local P, G, U, W, T, L = game:GetService"Players", game:GetService"UserInputService", game:GetService"RunService", game:GetService"Workspace", game:GetService"TweenService", game:GetService"Lighting"
+local p = P.LocalPlayer
+if not p then P:GetPropertyChangedSignal"LocalPlayer":Wait() p = P.LocalPlayer end
+
+local g = p:WaitForChild("PlayerGui", 10)
+if g:FindFirstChild"UltimateMM2_Menu" then g.UltimateMM2_Menu:Destroy() end
+
+local s = Instance.new"ScreenGui"
+s.Name = "UltimateMM2_Menu"
+s.ResetOnSpawn = false
+s.DisplayOrder = 999999
+s.Parent = g
+
+local f = Instance.new"Frame"
+f.Size = UDim2.new(0.6, 0, 0.7, 0)
+f.Position = UDim2.new(0.2, 0, 0.15, 0)
+f.BackgroundColor3 = Color3.fromRGB(15, 12, 22)
+f.BackgroundTransparency = 0.2
+f.BorderSizePixel = 0
+f.Active = true
+f.ClipsDescendants = false
+f.ZIndex = 10
+f.Parent = s
+
+Instance.new("UICorner", f).CornerRadius = UDim.new(0, 10)
+
+local st = Instance.new"UIStroke"
+st.Color = Color3.fromRGB(160, 80, 220)
+st.Thickness = 2
+st.Parent = f
+
+local h = Instance.new"Frame"
+h.Size = UDim2.new(1, 0, 0, 36)
+h.BackgroundColor3 = Color3.fromRGB(25, 18, 38)
+h.BorderSizePixel = 0
+h.ZIndex = 11
+h.Parent = f
+Instance.new("UICorner", h).CornerRadius = UDim.new(0, 10)
+
+local ti = Instance.new"TextLabel"
+ti.Size = UDim2.new(0.7, 0, 1, 0)
+ti.Position = UDim2.new(0, 12, 0, 0)
+ti.BackgroundTransparency = 1
+ti.Text = "UltimateMM2 Hub"
+ti.TextColor3 = Color3.fromRGB(240, 220, 255)
+ti.TextSize = 16
+ti.Font = Enum.Font.GothamBold
+ti.TextXAlignment = Enum.TextXAlignment.Left
+ti.ZIndex = 12
+ti.Parent = h
+
+local mb = Instance.new"TextButton"
+mb.Size = UDim2.new(0, 30, 0, 26)
+mb.Position = UDim2.new(1, -36, 0.5, -13)
+mb.BackgroundColor3 = Color3.fromRGB(60, 40, 90)
+mb.BorderSizePixel = 0
+mb.Text = "—"
+mb.TextColor3 = Color3.fromRGB(255, 255, 255)
+mb.TextSize = 16
+mb.Font = Enum.Font.GothamBold
+mb.ZIndex = 12
+mb.Parent = h
+Instance.new("UICorner", mb).CornerRadius = UDim.new(0, 6)
+
+local ob = Instance.new"TextButton"
+ob.Size = UDim2.new(0, 45, 0, 45)
+ob.Position = UDim2.new(0.05, 0, 0.1, 0)
+ob.BackgroundColor3 = Color3.fromRGB(25, 18, 38)
+ob.BorderSizePixel = 0
+ob.Text = "U"
+ob.TextColor3 = Color3.fromRGB(200, 100, 255)
+ob.TextSize = 24
+ob.Font = Enum.Font.GothamBold
+ob.Visible = false
+ob.Active = true
+ob.ZIndex = 100
+ob.Parent = s
+Instance.new("UICorner", ob).CornerRadius = UDim.new(0, 10)
+local os = Instance.new"UIStroke"
+os.Color = Color3.fromRGB(160, 80, 220)
+os.Thickness = 2
+os.Parent = ob
+
+local tf = Instance.new"Frame"
+tf.Size = UDim2.new(1, -16, 0, 32)
+tf.Position = UDim2.new(0, 8, 0, 42)
+tf.BackgroundTransparency = 1
+tf.ZIndex = 11
+tf.Parent = f
+
+local cp = Instance.new"Frame"
+cp.Size = UDim2.new(1, -16, 1, -82)
+cp.Position = UDim2.new(0, 8, 0, 78)
+cp.BackgroundTransparency = 1
+cp.ZIndex = 11
+cp.Parent = f
+
+local tabs = {"VISUALS", "COMBAT", "PLAYER", "SETTINGS"}
+local tcf = {}
+local tb = {}
+local ee, ne, ce, ap, ac, ax, sh, fl, nv = false, false, false, false, false, false, false, false, false
+local hl, nt = {}, {}
+
+local function gr(pl)
+    local c = pl.Character
+    local b = pl:FindFirstChild"Backpack"
+    local function ci(n)
+        return (c and c:FindFirstChild(n)) or (b and b:FindFirstChild(n))
+    end
+    if ci"Knife" then return "Murderer" end
+    if ci"Gun" then return "Sheriff" end
+    return "Innocent"
+end
+
+local function tp(h, t)
+    if not h or not t then return end
+    if firetouchinterest then
+        pcall(function() firetouchinterest(h, t, 0) firetouchinterest(h, t, 1) end)
+    else
+        h.CFrame = t.CFrame
+    end
+end
+
+local function ct(pa, tt, py, cb)
+    local r = Instance.new"Frame"
+    r.Size = UDim2.new(1, 0, 0, 36)
+    r.Position = UDim2.new(0, 0, 0, py)
+    r.BackgroundTransparency = 1
+    r.ZIndex = 12
+    r.Parent = pa
+
+    local l = Instance.new"TextLabel"
+    l.Size = UDim2.new(0.7, 0, 1, 0)
+    l.BackgroundTransparency = 1
+    l.Text = tt
+    l.TextColor3 = Color3.fromRGB(230, 220, 245)
+    l.TextSize = 13
+    l.Font = Enum.Font.GothamMedium
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.ZIndex = 13
+    l.Parent = r
+
+    local btn = Instance.new"TextButton"
+    btn.Size = UDim2.new(0, 48, 0, 24)
+    btn.Position = UDim2.new(1, -50, 0.5, -12)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 35, 65)
+    btn.BorderSizePixel = 0
+    btn.Text = ""
+    btn.ZIndex = 13
+    btn.Parent = r
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
+
+    local ci = Instance.new"Frame"
+    ci.Size = UDim2.new(0, 18, 0, 18)
+    ci.Position = UDim2.new(0, 3, 0.5, -9)
+    ci.BackgroundColor3 = Color3.fromRGB(200, 180, 220)
+    ci.BorderSizePixel = 0
+    ci.ZIndex = 14
+    ci.Parent = btn
+    Instance.new("UICorner", ci).CornerRadius = UDim.new(1, 0)
+
+    local st = false
+    btn.Activated:Connect(function()
+        st = not st
+        local tc = st and Color3.fromRGB(150, 70, 220) or Color3.fromRGB(45, 35, 65)
+        local tp = st and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
+        T:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = tc}):Play()
+        T:Create(ci, TweenInfo.new(0.15), {Position = tp}):Play()
+        cb(st)
+    end)
+end
+
+for i, tn in ipairs(tabs) do
+    local b = Instance.new"TextButton"
+    b.Size = UDim2.new(0.23, 0, 1, 0)
+    b.Position = UDim2.new((i - 1) * 0.25, 0, 0, 0)
+    b.BackgroundColor3 = (i == 1) and Color3.fromRGB(75, 35, 125) or Color3.fromRGB(25, 18, 38)
+    b.BorderSizePixel = 0
+    b.Text = tn
+    b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    b.TextSize = 10
+    b.Font = Enum.Font.GothamBold
+    b.ZIndex = 12
+    b.Parent = tf
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
+    tb[tn] = b
+
+    local c = Instance.new"Frame"
+    c.Size = UDim2.new(1, 0, 1, 0)
+    c.BackgroundTransparency = 1
+    c.Visible = (i == 1)
+    c.ZIndex = 12
+    c.Parent = cp
+    tcf[tn] = c
+
     if tn == "VISUALS" then
-        ct(c, "ESP (Подсветка)", 10, function(s) ee = s end)
-        ct(c, "NameTags (Имена)", 55, function(s) ne = s end)
+        ct(c, "ESP (Подсветка)", 5, function(s) ee = s end)
+        ct(c, "NameTags (Имена)", 45, function(s) ne = s end)
     elseif tn == "COMBAT" then
-        ct(c, "Aim Bot (Авто-наведение)", 10, function(s) ce = s end)
-        ct(c, "Auto Pick Gun", 55, function(s) ap = s end)
+        ct(c, "Aim Bot", 5, function(s) ce = s end)
+        ct(c, "Auto Pick Gun", 45, function(s) ap = s end)
     elseif tn == "PLAYER" then
-        ct(c, "Auto Farm Coins", 10, function(s) ac = s if s then cc = {} lcs = 0 end end)
-        ct(c, "Auto Farm XP", 55, function(s) ax = s end)
-        ct(c, "Speed Hack", 100, function(s) sh = s end)
-        ct(c, "Fly Mode", 145, function(s) fl = s end)
+        ct(c, "Auto Farm Coins", 5, function(s) ac = s end)
+        ct(c, "Auto Farm XP", 45, function(s) ax = s end)
+        ct(c, "Speed Hack", 85, function(s) sh = s end)
+        ct(c, "Fly Mode", 125, function(s) fl = s end)
     elseif tn == "SETTINGS" then
-        local sl = Instance.new"TextLabel"
-        sl.Size = UDim2.new(0, 160, 0, 38)
-        sl.Position = UDim2.new(0, 10, 0, 10)
-        sl.BackgroundTransparency = 1
-        sl.Text = "Масштаб меню"
-        sl.TextColor3 = Color3.fromRGB(210, 200, 230)
-        sl.TextSize = 14
-        sl.Font = Enum.Font.GothamMedium
-        sl.TextXAlignment = Enum.TextXAlignment.Left
-        sl.ZIndex = 4
-        sl.Active = false
-        sl.Parent = c
-
-        local mib = Instance.new"TextButton"
-        mib.Size = UDim2.new(0, 54, 0, 38)
-        mib.Position = UDim2.new(0, 190, 0, 10)
-        mib.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
-        mib.BorderSizePixel = 0
-        mib.Text = "-"
-        mib.TextColor3 = Color3.new(1, 1, 1)
-        mib.TextSize = 22
-        mib.Font = Enum.Font.GothamBold
-        mib.ZIndex = 5
-        mib.Active = true
-        mib.Parent = c
-
-        local plb = Instance.new"TextButton"
-        plb.Size = UDim2.new(0, 54, 0, 38)
-        plb.Position = UDim2.new(0, 252, 0, 10)
-        plb.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
-        plb.BorderSizePixel = 0
-        plb.Text = "+"
-        plb.TextColor3 = Color3.new(1, 1, 1)
-        plb.TextSize = 20
-        plb.Font = Enum.Font.GothamBold
-        plb.ZIndex = 5
-        plb.Active = true
-        plb.Parent = c
-
-        bb(plb, function() if sc.Scale < 1.4 then sc.Scale = sc.Scale + 0.1 end end)
-        bb(mib, function() if sc.Scale > 0.7 then sc.Scale = sc.Scale - 0.1 end end)
-
-        local tl = Instance.new"TextLabel"
-        tl.Size = UDim2.new(0, 160, 0, 38)
-        tl.Position = UDim2.new(0, 10, 0, 55)
-        tl.BackgroundTransparency = 1
-        tl.Text = "Прозрачность"
-        tl.TextColor3 = Color3.fromRGB(210, 200, 230)
-        tl.TextSize = 14
-        tl.Font = Enum.Font.GothamMedium
-        tl.TextXAlignment = Enum.TextXAlignment.Left
-        tl.ZIndex = 4
-        tl.Active = false
-        tl.Parent = c
-
-        local tmb = Instance.new"TextButton"
-        tmb.Size = UDim2.new(0, 54, 0, 38)
-        tmb.Position = UDim2.new(0, 190, 0, 55)
-        tmb.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
-        tmb.BorderSizePixel = 0
-        tmb.Text = "-"
-        tmb.TextColor3 = Color3.new(1, 1, 1)
-        tmb.TextSize = 22
-        tmb.Font = Enum.Font.GothamBold
-        tmb.ZIndex = 5
-        tmb.Active = true
-        tmb.Parent = c
-
-        local tpb = Instance.new"TextButton"
-        tpb.Size = UDim2.new(0, 54, 0, 38)
-        tpb.Position = UDim2.new(0, 252, 0, 55)
-        tpb.BackgroundColor3 = Color3.fromRGB(50, 35, 80)
-        tpb.BorderSizePixel = 0
-        tpb.Text = "+"
-        tpb.TextColor3 = Color3.new(1, 1, 1)
-        tpb.TextSize = 20
-        tpb.Font = Enum.Font.GothamBold
-        tpb.ZIndex = 5
-        tpb.Active = true
-        tpb.Parent = c
-
-        bb(tpb, function() if f.BackgroundTransparency < 0.9 then f.BackgroundTransparency = f.BackgroundTransparency + 0.1 end end)
-        bb(tmb, function() if f.BackgroundTransparency > 0.1 then f.BackgroundTransparency = f.BackgroundTransparency - 0.1 end end)
-
-        ct(c, "Night Vision", 100, function(s) nv = s end)
-
+        ct(c, "Night Vision", 5, function(s) nv = s end)
         local clb = Instance.new"TextButton"
-        clb.Size = UDim2.new(1, -20, 0, 40)
-        clb.Position = UDim2.new(0, 10, 0, 145)
+        clb.Size = UDim2.new(1, 0, 0, 36)
+        clb.Position = UDim2.new(0, 0, 0, 50)
         clb.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
         clb.BorderSizePixel = 0
         clb.Text = "Закрыть скрипт"
         clb.TextColor3 = Color3.new(1, 1, 1)
-        clb.TextSize = 14
+        clb.TextSize = 12
         clb.Font = Enum.Font.GothamBold
-        clb.ZIndex = 5
-        clb.Active = true
+        clb.ZIndex = 13
         clb.Parent = c
         Instance.new("UICorner", clb).CornerRadius = UDim.new(0, 6)
-
-        bb(clb, function() s:Destroy() end)
+        clb.Activated:Connect(function() s:Destroy() end)
     end
 
-    bb(b, function()
+    b.Activated:Connect(function()
         for _, ot in ipairs(tabs) do
-            tb[ot].BackgroundColor3 = Color3.fromRGB(22, 18, 32)
-            tb[ot].TextColor3 = Color3.fromRGB(150, 130, 180)
+            tb[ot].BackgroundColor3 = Color3.fromRGB(25, 18, 38)
             tcf[ot].Visible = false
         end
         b.BackgroundColor3 = Color3.fromRGB(75, 35, 125)
-        b.TextColor3 = Color3.new(1, 1, 1)
         tcf[tn].Visible = true
     end)
 end
 
-print"✅ UltimateMM2 Hub loaded!"
-print"📌 Press INSERT or HOME to toggle menu"
+local mv = true
+local function tm()
+    mv = not mv
+    f.Visible = mv
+    ob.Visible = not mv
+end
+mb.Activated:Connect(tm)
+ob.Activated:Connect(tm)
 
+G.RenderStepped:Connect(function()
+    if ee then
+        for _, pl in ipairs(P:GetPlayers()) do
+            if pl ~= p and pl.Character then
+                local c = pl.Character
+                local h = hl[pl]
+                if not h or h.Parent ~= c then
+                    if h then pcall(function() h:Destroy() end) end
+                    h = Instance.new"Highlight"
+                    h.FillTransparency = 0.4
+                    h.Parent = c
+                    hl[pl] = h
+                end
+                local r = gr(pl)
+                h.FillColor = (r == "Murderer" and Color3.fromRGB(255, 40, 40)) or (r == "Sheriff" and Color3.fromRGB(40, 120, 255)) or Color3.fromRGB(40, 255, 40)
+            end
+        end
+    else
+        for pl, h in pairs(hl) do if h then pcall(function() h:Destroy() end) end hl[pl] = nil end
+    end
+end)
