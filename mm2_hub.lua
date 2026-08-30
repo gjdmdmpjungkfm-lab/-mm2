@@ -158,6 +158,7 @@ local espEnabled = false
 local combatAimEnabled = false
 local autoPickGunEnabled = false
 local autoFarmCoinsEnabled = false
+local autoFarmToggleCallback = nil
 
 local highlights = {}
 
@@ -279,33 +280,81 @@ task.spawn(function()
     end
 end)
 
-task.spawn(function()
-    local function getCoinContainer()
-        local coinContainer = Workspace:FindFirstChild("CoinContainer", true)
-            or Workspace:FindFirstChild("BeachTokens", true)
-            or Workspace:FindFirstChild("SummerEvent", true)
-            or Workspace:FindFirstChild("Normal", true)
-        return coinContainer
+local function getFullBagStatus()
+    local isFull = false
+    pcall(function()
+        local coinContainerGui = LocalPlayer.PlayerGui:FindFirstChild("MainGui") and LocalPlayer.PlayerGui.MainGui:FindFirstChild("Game") and LocalPlayer.PlayerGui.MainGui.Game:FindFirstChild("CoinContainer")
+        if coinContainerGui then
+            local coinTextLabel = coinContainerGui:FindFirstChild("CoinText") or coinContainerGui:FindFirstChild("TextLabel")
+            if coinTextLabel then
+                local current, max = coinTextLabel.Text:match("(%d+)/(%d+)")
+                if current and max and tonumber(current) >= tonumber(max) then
+                    isFull = true
+                end
+            end
+        end
+    end)
+    return isFull
+end
+
+local function moveToCoinSmooth(hrp, targetCFrame, moveSpeed)
+    local startCFrame = hrp.CFrame
+    local distance = (startCFrame.Position - targetCFrame.Position).Magnitude
+    local duration = distance / moveSpeed
+    local startTime = tick()
+
+    while autoFarmCoinsEnabled and (tick() - startTime) < duration do
+        local alpha = (tick() - startTime) / duration
+        if alpha > 1 then alpha = 1 end
+        hrp.CFrame = startCFrame:Lerp(targetCFrame, alpha)
+        task.wait()
     end
 
+    if autoFarmCoinsEnabled then
+        hrp.CFrame = targetCFrame
+    end
+end
+
+task.spawn(function()
+    local FARM_SPEED = 27
+    local isFirstTeleport = true
+
     while true do
-        task.wait(0.1)
+        task.wait(0.05)
         if autoFarmCoinsEnabled then
             pcall(function()
                 local char = LocalPlayer.Character
                 local hrp = char and char:FindFirstChild("HumanoidRootPart")
                 
                 if hrp then
-                    local container = getCoinContainer()
+                    if getFullBagStatus() then
+                        local safeCFrame = CFrame.new(0, 500, 0)
+                        local lobby = Workspace:FindFirstChild("Lobby") or Workspace:FindFirstChild("SpawnLocation")
+                        if lobby then
+                            safeCFrame = lobby:IsA("BasePart") and lobby.CFrame + Vector3.new(0, 5, 0) or lobby:GetPivot() + Vector3.new(0, 5, 0)
+                        end
+                        
+                        hrp.CFrame = safeCFrame
+                        autoFarmCoinsEnabled = false
+                        if autoFarmToggleCallback then
+                            autoFarmToggleCallback(false)
+                        end
+                        isFirstTeleport = true
+                        return
+                    end
+
+                    local coinContainer = Workspace:FindFirstChild("CoinContainer", true)
                     local coinList = {}
 
-                    if container then
-                        coinList = container:GetChildren()
+                    if coinContainer then
+                        coinList = coinContainer:GetChildren()
                     else
-                        for _, item in ipairs(Workspace:GetDescendants()) do
-                            local name = item.Name
-                            if name == "Coin_Server" or name == "Coin_Sub" or name == "Coin" or name == "BeachToken" or name == "Token" then
-                                table.insert(coinList, item)
+                        for _, obj in ipairs(Workspace:GetDescendants()) do
+                            if obj:IsA("TouchTransmitter") and obj.Parent then
+                                local parentName = obj.Parent.Name
+                                if parentName == "Coin_Server" or parentName == "Coin_Sub" or parentName == "Coin" or parentName == "BeachToken" or parentName == "Token" or parentName == "Snowflake" or parentName == "Candy" then
+                                    table.insert(coinList, obj.Parent)
+                                end
                             end
                         end
                     end
@@ -315,7 +364,7 @@ task.spawn(function()
 
                     for _, coin in ipairs(coinList) do
                         local part = coin:IsA("BasePart") and coin or coin:FindFirstChildWhichIsA("BasePart")
-                        if part and part.Parent then
+                        if part and part.Parent and part.Transparency < 1 then
                             local dist = (hrp.Position - part.Position).Magnitude
                             if dist < shortestDist then
                                 shortestDist = dist
@@ -325,11 +374,24 @@ task.spawn(function()
                     end
 
                     if closestCoin then
-                        touchPart(hrp, closestCoin)
-                        task.wait(0.08)
+                        local targetCFrame = closestCoin.CFrame
+                        
+                        if isFirstTeleport then
+                            hrp.CFrame = targetCFrame
+                            isFirstTeleport = false
+                        else
+                            moveToCoinSmooth(hrp, targetCFrame, FARM_SPEED)
+                        end
+
+                        if autoFarmCoinsEnabled and closestCoin and closestCoin.Parent then
+                            touchPart(hrp, closestCoin)
+                            task.wait(0.1)
+                        end
                     end
                 end
             end)
+        else
+            isFirstTeleport = true
         end
     end
 end)
@@ -393,8 +455,9 @@ local function createToggle(parent, titleText, posY, callback)
     cCorner.Parent = circle
     
     local state = false
-    bindButton(toggleBtn, function()
-        state = not state
+    
+    local function setVisualState(newState)
+        state = newState
         if state then
             toggleBtn.BackgroundColor3 = Color3.fromRGB(150, 70, 220)
             circle.Position = UDim2.new(1, -25, 0.5, -11)
@@ -404,8 +467,14 @@ local function createToggle(parent, titleText, posY, callback)
             circle.Position = UDim2.new(0, 3, 0.5, -11)
             circle.BackgroundColor3 = Color3.fromRGB(200, 180, 220)
         end
+    end
+
+    bindButton(toggleBtn, function()
+        setVisualState(not state)
         callback(state)
     end)
+
+    return setVisualState
 end
 
 for i, tabName in ipairs(tabs) do
@@ -451,7 +520,7 @@ for i, tabName in ipairs(tabs) do
         end)
 
     elseif tabName == "PLAYER" then
-        createToggle(container, "Auto Farm Coins (Фарм монет)", 10, function(state)
+        autoFarmToggleCallback = createToggle(container, "Auto Farm Coins (Фарм монет)", 10, function(state)
             autoFarmCoinsEnabled = state
         end)
 
@@ -493,71 +562,4 @@ for i, tabName in ipairs(tabs) do
         plusBtn.Font = Enum.Font.GothamBold
         plusBtn.ZIndex = 5
         plusBtn.Active = true
-        plusBtn.Parent = container
-
-        bindButton(plusBtn, function()
-            if MenuScale.Scale < 1.4 then
-                MenuScale.Scale = MenuScale.Scale + 0.1
-            end
-        end)
-        
-        bindButton(minusBtn, function()
-            if MenuScale.Scale > 0.7 then
-                MenuScale.Scale = MenuScale.Scale - 0.1
-            end
-        end)
-    end
-
-    tabContentFrames[tabName] = container
-
-    bindButton(btn, function()
-        for name, frame in pairs(tabContentFrames) do
-            frame.Visible = (name == tabName)
-        end
-        for name, b in pairs(tabButtons) do
-            local active = (name == tabName)
-            b.BackgroundColor3 = active and Color3.fromRGB(75, 35, 125) or Color3.fromRGB(22, 18, 32)
-            b.TextColor3 = active and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 130, 180)
-        end
-    end)
-end
-
-bindButton(MinimizeBtn, function()
-    MainFrame.Visible = false
-    OpenBtn.Visible = true
-end)
-
-bindButton(OpenBtn, function()
-    OpenBtn.Visible = false
-    MainFrame.Visible = true
-end)
-
-local dragging, dragInput, dragStart, startPos
-Header.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-    end
-end)
-
-Header.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
-    end
-end)
-
-print("[UltimateMM2 Hub]: Loaded!")
+        plusBtn.Parent =
