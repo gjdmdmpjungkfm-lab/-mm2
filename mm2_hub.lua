@@ -1,817 +1,405 @@
-local P, G, U, W, T, L = game:GetService"Players", game:GetService"UserInputService", game:GetService"RunService", game:GetService"Workspace", game:GetService"TweenService", game:GetService"Lighting"
-local p = P.LocalPlayer
-if not p then P:GetPropertyChangedSignal"LocalPlayer":Wait() p = P.LocalPlayer end
+local P=game:GetService("Players")
+local UIS=game:GetService("UserInputService")
+local RS=game:GetService("RunService")
+local WS=game:GetService("Workspace")
+local TS=game:GetService("TweenService")
+local LP=P.LocalPlayer or P:GetPropertyChangedSignal("LocalPlayer"):Wait() and P.LocalPlayer
+local PG=LP:WaitForChild("PlayerGui",10)if PG:FindFirstChild("UIM_Menu")then PG.UIM_Menu:Destroy()end
+local SG=Instance.new("ScreenGui",PG)SG.Name,SG.ResetOnSpawn,SG.DisplayOrder="UIM_Menu",false,999999
+local MF=Instance.new("Frame",SG)MF.Size,MF.Position,MF.BackgroundColor3=UDim2.new(0,430,0,270),UDim2.new(0.5,-215,0.5,-135),Color3.fromRGB(15,12,22)MF.BackgroundTransparency,MF.BorderSizePixel,MF.Active,MF.Visible=0.4,0,true,true
+local MS=Instance.new("UIScale",MF)Instance.new("UICorner",MF).CornerRadius=UDim.new(0,8)local US=Instance.new("UIStroke",MF)US.Color,US.Thickness=Color3.fromRGB(160,80,220),1.5
+local H=Instance.new("Frame",MF)H.Size,H.BackgroundColor3,H.BackgroundTransparency,H.BorderSizePixel,H.Active=UDim2.new(1,0,0,46),Color3.fromRGB(22,17,32),0.2,0,true
+Instance.new("UICorner",H).CornerRadius=UDim.new(0,8)
+local LB=Instance.new("Frame",H)LB.Size,LB.Position,LB.BackgroundColor3,LB.BorderSizePixel=UDim2.new(0,26,0,26),UDim2.new(0,6,0,10),Color3.fromRGB(130,50,200),0
+Instance.new("UICorner",LB).CornerRadius=UDim.new(0,6)local LT=Instance.new("TextLabel",LB)LT.Size,LT.BackgroundTransparency,LT.Text,LT.TextColor3,LT.TextSize,LT.Font=UDim2.new(1,0,1,0),1,"U",Color3.new(1,1,1),17,Enum.Font.GothamBold
+local T=Instance.new("TextLabel",H)T.Size,T.Position,T.BackgroundTransparency,T.Text,T.TextColor3,T.TextSize,T.Font,T.TextXAlignment=UDim2.new(0,330,0,18),UDim2.new(0,40,0,5),1,"UltimateMM2 Hub",Color3.fromRGB(240,220,255),14,Enum.Font.GothamBold,Enum.TextXAlignment.Left
+local ST=Instance.new("TextLabel",H)ST.Size,ST.Position,ST.BackgroundTransparency,ST.Text,ST.TextColor3,ST.TextSize,ST.Font,ST.TextXAlignment=UDim2.new(0,330,0,16),UDim2.new(0,40,0,23),1,"t.me/UltimateHub_Official",Color3.fromRGB(160,130,200),10,Enum.Font.GothamMedium,Enum.TextXAlignment.Left
+local MB=Instance.new("TextButton",H)MB.Size,MB.Position,MB.BackgroundColor3,MB.BorderSizePixel,MB.Text,MB.TextColor3,MB.TextSize,MB.Font=UDim2.new(0,30,0,26),UDim2.new(1,-36,0,10),Color3.fromRGB(45,30,70),0,"—",Color3.fromRGB(230,170,255),15,Enum.Font.GothamBold
+Instance.new("UICorner",MB).CornerRadius=UDim.new(0,6)
+local OB=Instance.new("TextButton",SG)OB.Size,OB.Position,OB.BackgroundColor3,OB.BorderSizePixel,OB.Text,OB.TextColor3,OB.TextSize,OB.Font,OB.Visible,OB.ZIndex=UDim2.new(0,45,0,45),UDim2.new(0.1,0,0.2,0),Color3.fromRGB(25,18,38),0,"U",Color3.fromRGB(200,100,255),24,Enum.Font.GothamBold,false,100
+Instance.new("UICorner",OB).CornerRadius=UDim.new(0,10)local OS=Instance.new("UIStroke",OB)OS.Color,OS.Thickness=Color3.fromRGB(160,80,220),2
+local TF=Instance.new("Frame",MF)TF.Size,TF.Position,TF.BackgroundTransparency=UDim2.new(1,-16,0,28),UDim2.new(0,8,0,53),1
 
-local g = p:WaitForChild("PlayerGui", 10)
-if g:FindFirstChild"UltimateMM2_Menu" then g.UltimateMM2_Menu:Destroy() end
+local tabs={"FEATURES","SETTINGS"}local tContent,tBtns={},{}
+local CP=Instance.new("Frame",MF)CP.Size,CP.Position,CP.BackgroundTransparency,CP.ClipsDescendants=UDim2.new(1,-16,1,-89),UDim2.new(0,8,0,85),1,true
+local espE,aimE,autoGunE,speedE,autoFarmE,avoidMurdE=false,false,false,false,false,false
+local avoidRadius = 100
+local hls={}
+local collectedCoins = {}
+local collectedPositions = {}
 
-local s = Instance.new"ScreenGui"
-s.Name = "UltimateMM2_Menu"
-s.ResetOnSpawn = false
-s.DisplayOrder = 999999
-s.Parent = g
-
-local f = Instance.new"Frame"
-f.Size = UDim2.new(0, 450, 0, 380)
-f.Position = UDim2.new(0.5, -225, 0.5, -190)
-f.BackgroundColor3 = Color3.fromRGB(15, 12, 22)
-f.BackgroundTransparency = 0.4
-f.BorderSizePixel = 0
-f.Active = true
-f.ClipsDescendants = false
-f.Visible = true
-f.ZIndex = 1
-f.Parent = s
-
-local sc = Instance.new"UIScale"
-sc.Scale = 1
-sc.Parent = f
-Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8)
-
-local st = Instance.new"UIStroke"
-st.Color = Color3.fromRGB(160, 80, 220)
-st.Thickness = 1.5
-st.Parent = f
-
-local h = Instance.new"Frame"
-h.Size = UDim2.new(1, 0, 0, 38)
-h.BackgroundColor3 = Color3.fromRGB(22, 17, 32)
-h.BackgroundTransparency = 0.2
-h.BorderSizePixel = 0
-h.Active = true
-h.ZIndex = 2
-h.Parent = f
-Instance.new("UICorner", h).CornerRadius = UDim.new(0, 8)
-
-local lb = Instance.new"Frame"
-lb.Size = UDim2.new(0, 28, 0, 28)
-lb.Position = UDim2.new(0, 6, 0.5, -14)
-lb.BackgroundColor3 = Color3.fromRGB(130, 50, 200)
-lb.BorderSizePixel = 0
-lb.ZIndex = 3
-lb.Parent = h
-Instance.new("UICorner", lb).CornerRadius = UDim.new(0, 6)
-
-local lt = Instance.new"TextLabel"
-lt.Size = UDim2.new(1, 0, 1, 0)
-lt.BackgroundTransparency = 1
-lt.Text = "U"
-lt.TextColor3 = Color3.new(1, 1, 1)
-lt.TextSize = 18
-lt.Font = Enum.Font.GothamBold
-lt.ZIndex = 4
-lt.Parent = lb
-
-local ti = Instance.new"TextLabel"
-ti.Size = UDim2.new(0, 200, 1, 0)
-ti.Position = UDim2.new(0, 42, 0, 0)
-ti.BackgroundTransparency = 1
-ti.Text = "UltimateMM2 Hub"
-ti.TextColor3 = Color3.fromRGB(240, 220, 255)
-ti.TextSize = 15
-ti.Font = Enum.Font.GothamBold
-ti.TextXAlignment = Enum.TextXAlignment.Left
-ti.ZIndex = 3
-ti.Parent = h
-
-local mb = Instance.new"TextButton"
-mb.Size = UDim2.new(0, 32, 0, 28)
-mb.Position = UDim2.new(1, -38, 0.5, -14)
-mb.BackgroundColor3 = Color3.fromRGB(45, 30, 70)
-mb.BorderSizePixel = 0
-mb.Text = "—"
-mb.TextColor3 = Color3.fromRGB(230, 170, 255)
-mb.TextSize = 16
-mb.Font = Enum.Font.GothamBold
-mb.ZIndex = 5
-mb.Parent = h
-Instance.new("UICorner", mb).CornerRadius = UDim.new(0, 6)
-
-local ob = Instance.new"TextButton"
-ob.Size = UDim2.new(0, 50, 0, 50)
-ob.Position = UDim2.new(0.1, 0, 0.2, 0)
-ob.BackgroundColor3 = Color3.fromRGB(25, 18, 38)
-ob.BorderSizePixel = 0
-ob.Text = "U"
-ob.TextColor3 = Color3.fromRGB(200, 100, 255)
-ob.TextSize = 26
-ob.Font = Enum.Font.GothamBold
-ob.Visible = false
-ob.Active = true
-ob.ZIndex = 100
-ob.Parent = s
-Instance.new("UICorner", ob).CornerRadius = UDim.new(0, 12)
-
-local os = Instance.new"UIStroke"
-os.Color = Color3.fromRGB(160, 80, 220)
-os.Thickness = 2
-os.Parent = ob
-
-local tf = Instance.new"Frame"
-tf.Size = UDim2.new(1, -16, 0, 30)
-tf.Position = UDim2.new(0, 8, 0, 46)
-tf.BackgroundTransparency = 1
-tf.ZIndex = 2
-tf.Parent = f
-
-local tabs = {"VISUALS", "COMBAT", "PLAYER", "SETTINGS"}
-local tcf = {}
-local tb = {}
-
-local cp = Instance.new"Frame"
-cp.Size = UDim2.new(1, -16, 1, -84)
-cp.Position = UDim2.new(0, 8, 0, 80)
-cp.BackgroundTransparency = 1
-cp.ClipsDescendants = true
-cp.ZIndex = 2
-cp.Parent = f
-
-local ee, ne, ce, ap, ac, ax, sh, fl, nv = false, false, false, false, false, false, false, false, false
-local hl = {}
-local nt = {}
-
-local function gr(pl)
-    local c = pl.Character
-    local b = pl:FindFirstChild"Backpack"
-    local function ci(n)
-        if c and c:FindFirstChild(n) then return true end
-        if b and b:FindFirstChild(n) then return true end
-        return false
-    end
-    if ci"Knife" then return "Murderer" end
-    if ci"Gun" then return "Sheriff" end
-    return "Innocent"
-end
-
-local function tp(h, t)
-    if not h or not t then return end
-    if firetouchinterest then
-        pcall(function() firetouchinterest(h, t, 0) firetouchinterest(h, t, 1) end)
-    else
-        h.CFrame = t.CFrame
-    end
-end
-
-local cc = {}
-local lcs = 0
-local function sc()
-    if tick() - lcs < 0.5 then return cc end
-    local co = {}
-    local cn = {"Coin", "Coin_Sub", "Snowflake", "Candy", "Gift"}
-    for _, o in ipairs(W:GetDescendants()) do
-        for _, n in ipairs(cn) do
-            if o.Name == n then
-                local pt = o:IsA"BasePart" and o or o:FindFirstChildWhichIsA"BasePart"
-                if pt and pt.Parent then table.insert(co, pt) end
-            end
-        end
-    end
-    cc = co
-    lcs = tick()
-    return co
-end
-
-local dr, ds, dsp = false, nil, nil
-local function ud(i)
-    local d = i.Position - ds
-    f.Position = UDim2.new(dsp.X.Scale, dsp.X.Offset + d.X, dsp.Y.Scale, dsp.Y.Offset + d.Y)
-end
-
-h.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-        dr = true
-        ds = i.Position
-        dsp = f.Position
-        di = i.Changed:Connect(function()
-            if i.UserInputState == Enum.UserInputState.End then
-                dr = false
-            else
-                ud(i)
-            end
-        end)
-    end
+local controls = nil
+pcall(function()
+    controls = require(LP:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule")):GetControls()
 end)
 
-h.InputEnded:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-        dr = false
-        if di then di:Disconnect() end
-    end
-end)
-local mv = true
-local function tm()
-    mv = not mv
-    f.Visible = mv
-    ob.Visible = not mv
-end
-
-mb.Activated:Connect(tm)
-ob.Activated:Connect(tm)
-
-U.InputBegan:Connect(function(i, gp)
-    if gp then return end
-    if i.KeyCode == Enum.KeyCode.Insert or i.KeyCode == Enum.KeyCode.Home then tm() end
-end)
-G.RenderStepped:Connect(function()
-    if ee then
-        for _, pl in ipairs(P:GetPlayers()) do
-            if pl ~= p and pl.Character then
-                local c = pl.Character
-                local h = hl[pl]
-                if not h or h.Parent ~= c then
-                    if h then pcall(function() h:Destroy() end) end
-                    h = Instance.new"Highlight"
-                    h.Name = "MM2_ESP"
-                    h.FillTransparency = 0.4
-                    h.OutlineTransparency = 0
-                    h.Parent = c
-                    hl[pl] = h
-                end
-                local r = gr(pl)
-                if r == "Murderer" then
-                    h.FillColor = Color3.fromRGB(255, 40, 40)
-                    h.OutlineColor = Color3.new(1, 1, 1)
-                elseif r == "Sheriff" then
-                    h.FillColor = Color3.fromRGB(40, 120, 255)
-                    h.OutlineColor = Color3.new(1, 1, 1)
-                else
-                    h.FillColor = Color3.fromRGB(40, 255, 40)
-                    h.OutlineColor = Color3.new(1, 1, 1)
-                end
-            end
-        end
-    else
-        for pl, h in pairs(hl) do
-            if h then pcall(function() h:Destroy() end) end
-            hl[pl] = nil
-        end
-    end
-
-    if ne then
-        for _, pl in ipairs(P:GetPlayers()) do
-            if pl ~= p and pl.Character and pl.Character:FindFirstChild"HumanoidRootPart" then
-                if not nt[pl] then
-                    local b = Instance.new"BillboardGui"
-                    b.Name = "NameTag"
-                    b.Size = UDim2.new(0, 200, 0, 50)
-                    b.StudsOffset = Vector3.new(0, 3, 0)
-                    b.AlwaysOnTop = true
-                    local l = Instance.new"TextLabel"
-                    l.Size = UDim2.new(1, 0, 1, 0)
-                    l.BackgroundTransparency = 1
-                    l.TextScaled = true
-                    l.Font = Enum.Font.GothamBold
-                    l.TextStrokeTransparency = 0.5
-                    b.Parent = pl.Character.HumanoidRootPart
-                    l.Parent = b
-                    nt[pl] = {b = b, l = l}
-                end
-                local r = gr(pl)
-                local n = nt[pl]
-                if n then
-                    n.l.Text = pl.Name .. " [" .. r .. "]"
-                    if r == "Murderer" then
-                        n.l.TextColor3 = Color3.fromRGB(255, 50, 50)
-                    elseif r == "Sheriff" then
-                        n.l.TextColor3 = Color3.fromRGB(50, 150, 255)
-                    else
-                        n.l.TextColor3 = Color3.fromRGB(50, 255, 50)
-                    end
-                end
-            end
-        end
-    else
-        for pl, n in pairs(nt) do
-            if n.b then pcall(function() n.b:Destroy() end) end
-            nt[pl] = nil
-        end
-    end
-
-    if ce then
-        pcall(function()
-            local mr = gr(p)
-            if mr == "Murderer" or mr == "Sheriff" then
-                local ca = W.CurrentCamera
-                for _, pl in ipairs(P:GetPlayers()) do
-                    if pl ~= p and pl.Character and pl.Character:FindFirstChild"HumanoidRootPart" then
-                        local tr = gr(pl)
-                        local st = false
-                        if mr == "Murderer" and tr == "Sheriff" then st = true
-                        elseif mr == "Sheriff" and tr == "Murderer" then st = true end
-                        if st then
-                            ca.CFrame = CFrame.new(ca.CFrame.Position, pl.Character.HumanoidRootPart.Position)
-                            break
-                        end
-                    end
-                end
-            end
-        end)
-    end
-end)
-
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if ap then
-            pcall(function()
-                local c = p.Character
-                if c and c:FindFirstChild"HumanoidRootPart" then
-                    local hr = c.HumanoidRootPart
-                    for _, o in ipairs(W:GetDescendants()) do
-                        if (o.Name == "GunDrop" or o.Name == "GunServer") then
-                            local t = o:IsA"BasePart" and o or o:FindFirstChildWhichIsA"BasePart"
-                            if t then tp(hr, t) end
-                        end
-                    end
-                end
-            end)
-        end
-    end
-end)
-
-task.spawn(function()
-    while true do
-        task.wait(0.15)
-        if ac then
-            pcall(function()
-                local c = p.Character
-                if c and c:FindFirstChild"HumanoidRootPart" then
-                    local hr = c.HumanoidRootPart
-                    local co = sc()
-                    for _, cp in ipairs(co) do
-                        if not ac then break end
-                        if cp and cp.Parent then
-                            local d = (hr.Position - cp.Position).Magnitude
-                            if d < 500 then
-                                tp(hr, cp)
-                                task.wait(0.03)
-                            end
-                        end
-                    end
-                end
-            end)
-        end
-    end
-end)
-
-task.spawn(function()
-    while true do
-        task.wait(0.5)
-        if ax then
-            pcall(function()
-                local c = p.Character
-                if c and c:FindFirstChild"Humanoid" then
-                    local hd = c.Humanoid
-                    if hd.Health > 0 then
-                        local mr = gr(p)
-                        if mr == "Murderer" then
-                            for _, pl in ipairs(P:GetPlayers()) do
-                                if pl ~= p and pl.Character and pl.Character:FindFirstChild"HumanoidRootPart" then
-                                    local tr = gr(pl)
-                                    if tr == "Innocent" or tr == "Sheriff" then
-                                        local th = pl.Character.HumanoidRootPart
-                                        local d = (c.HumanoidRootPart.Position - th.Position).Magnitude
-                                        if d < 100 then
-                                            tp(c.HumanoidRootPart, th)
-                                            task.wait(0.1)
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end)
-        end
-    end
-end)
-
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if sh then
-            pcall(function()
-                local c = p.Character
-                if c and c:FindFirstChild"Humanoid" then c.Humanoid.WalkSpeed = 50 end
-            end)
-        else
-            pcall(function()
-                local c = p.Character
-                if c and c:FindFirstChild"Humanoid" then c.Humanoid.WalkSpeed = 16 end
-            end)
-        end
-    end
-end)
-
-local fc
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if fl then
-            if not fc then
-                fc = G.RenderStepped:Connect(function()
-                    pcall(function()
-                        local c = p.Character
-                        if c and c:FindFirstChild"HumanoidRootPart" then
-                            local hr = c.HumanoidRootPart
-                            local v = Vector3.new(0, 0, 0)
-                            if U:IsKeyDown(Enum.KeyCode.W) then v = v + Vector3.new(0, 0, -1) end
-                            if U:IsKeyDown(Enum.KeyCode.S) then v = v + Vector3.new(0, 0, 1) end
-                            if U:IsKeyDown(Enum.KeyCode.A) then v = v + Vector3.new(-1, 0, 0) end
-                            if U:IsKeyDown(Enum.KeyCode.D) then v = v + Vector3.new(1, 0, 0) end
-                            if U:IsKeyDown(Enum.KeyCode.Space) then v = v + Vector3.new(0, 1, 0) end
-                            if U:IsKeyDown(Enum.KeyCode.LeftShift) then v = v + Vector3.new(0, -1, 0) end
-                            if v.Magnitude > 0 then hr.Velocity = v * 50 end
-                        end
-                    end)
-                end)
-            end
-        else
-            if fc then
-                fc:Disconnect()
-                fc = nil
-            end
-        end
-    end
-end)
-
-task.spawn(function()
-    while true do
-        task.wait(0.5)
-        if nv then
-            L.Brightness = 3
-            L.ClockTime = 14
-            L.FogEnd = 100000
-        else
-            L.Brightness = 1
-            L.ClockTime = 12
-            L.FogEnd = 1000
-        end
-    end
-end)
-
-local function bb(b, cb)
-    local lc = 0
-    b.Activated:Connect(function()
-        if tick() - lc > 0.15 then
-            lc = tick()
-            pcall(function()
-                T:Create(b, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = b.Size - UDim2.new(0, 4, 0, 4)}):Play()
-                task.delay(0.08, function()
-                    T:Create(b, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = b.Size + UDim2.new(0, 4, 0, 4)}):Play()
-                end)
-            end)
-            cb()
+local function setControlsLocked(locked)
+    pcall(function()
+        if controls then
+            if locked then controls:Disable() else controls:Enable() end
         end
     end)
 end
 
-local function ct(pa, tt, py, cb)
-    local r = Instance.new"Frame"
-    r.Size = UDim2.new(1, -20, 0, 40)
-    r.Position = UDim2.new(0, 10, 0, py)
-    r.BackgroundTransparency = 1
-    r.ZIndex = 3
-    r.Parent = pa
-
-    local l = Instance.new"TextLabel"
-    l.Size = UDim2.new(0, 240, 1, 0)
-    l.Position = UDim2.new(0, 0, 0, 0)
-    l.BackgroundTransparency = 1
-    l.Text = tt
-    l.TextColor3 = Color3.fromRGB(230, 220, 245)
-    l.TextSize = 14
-    l.Font = Enum.Font.GothamMedium
-    l.TextXAlignment = Enum.TextXAlignment.Left
-    l.ZIndex = 4
-    l.Active = false
-    l.Parent = r
-
-    local tb = Instance.new"TextButton"
-    tb.Size = UDim2.new(0, 52, 0, 28)
-    tb.Position = UDim2.new(1, -52, 0.5, -14)
-    tb.BackgroundColor3 = Color3.fromRGB(45, 35, 65)
-    tb.BorderSizePixel = 0
-    tb.Text = ""
-    tb.ZIndex = 5
-    tb.Active = true
-    tb.Parent = r
-    Instance.new("UICorner", tb).CornerRadius = UDim.new(1, 0)
-
-    local ci = Instance.new"Frame"
-    ci.Size = UDim2.new(0, 22, 0, 22)
-    ci.Position = UDim2.new(0, 3, 0.5, -11)
-    ci.BackgroundColor3 = Color3.fromRGB(200, 180, 220)
-    ci.BorderSizePixel = 0
-    ci.ZIndex = 6
-    ci.Active = false
-    ci.Parent = tb
-    Instance.new("UICorner", ci).CornerRadius = UDim.new(1, 0)
-
-    local st = false
-    bb(tb, function()
-        st = not st
-        local tc, tp, cc
-        if st then
-            tc = Color3.fromRGB(150, 70, 220)
-            tp = UDim2.new(1, -25, 0.5, -11)
-            cc = Color3.new(1, 1, 1)
-        else
-            tc = Color3.fromRGB(45, 35, 65)
-            tp = UDim2.new(0, 3, 0.5, -11)
-            cc = Color3.fromRGB(200, 180, 220)
-        end
-        T:Create(tb, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = tc}):Play()
-        T:Create(ci, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = tp, BackgroundColor3 = cc}):Play()
-        cb(st)
-    end)
+local function getRole(p)
+local c,bp=p.Character,p:FindFirstChild("Backpack")
+local function chk(n)return(c and c:FindFirstChild(n))or(bp and bp:FindFirstChild(n))end
+return chk("Knife")and"Murderer"or chk("Gun")and"Sheriff"or"Innocent"
 end
 
-for i, tn in ipairs(tabs) do
-    local b = Instance.new"TextButton"
-    b.Size = UDim2.new(0.235, 0, 1, 0)
-    b.Position = UDim2.new((i - 1) * 0.255, 0, 0, 0)
-    b.BackgroundColor3 = (i == 1) and Color3.fromRGB(75, 35, 125) or Color3.fromRGB(22, 18, 32)
-    b.BorderSizePixel = 0
-    b.Text = tn
-    b.TextColor3 = (i == 1) and Color3.new(1, 1, 1) or Color3.fromRGB(150, 130, 180)
-    b.TextSize = 11
-    b.Font = Enum.Font.GothamBold
-    b.ZIndex = 3
-    b.Active = true
-    b.Parent = tf
-    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
-    tb[tn] = b
-
-    local c = Instance.new"Frame"
-    c.Size = UDim2.new(1, 0, 1, 0)
-    c.BackgroundTransparency = 1
-    c.BorderSizePixel = 0
-    c.Visible = (i == 1)
-    c.ZIndex = 2
-    c.Parent = cp
-    tcf[tn] = c
-
-local P, G, U, W, T, L = game:GetService"Players", game:GetService"UserInputService", game:GetService"RunService", game:GetService"Workspace", game:GetService"TweenService", game:GetService"Lighting"
-local p = P.LocalPlayer
-if not p then P:GetPropertyChangedSignal"LocalPlayer":Wait() p = P.LocalPlayer end
-
-local g = p:WaitForChild("PlayerGui", 10)
-if g:FindFirstChild"UltimateMM2_Menu" then g.UltimateMM2_Menu:Destroy() end
-
-local s = Instance.new"ScreenGui"
-s.Name = "UltimateMM2_Menu"
-s.ResetOnSpawn = false
-s.DisplayOrder = 999999
-s.Parent = g
-
-local f = Instance.new"Frame"
-f.Size = UDim2.new(0.6, 0, 0.7, 0)
-f.Position = UDim2.new(0.2, 0, 0.15, 0)
-f.BackgroundColor3 = Color3.fromRGB(15, 12, 22)
-f.BackgroundTransparency = 0.2
-f.BorderSizePixel = 0
-f.Active = true
-f.ClipsDescendants = false
-f.ZIndex = 10
-f.Parent = s
-
-Instance.new("UICorner", f).CornerRadius = UDim.new(0, 10)
-
-local st = Instance.new"UIStroke"
-st.Color = Color3.fromRGB(160, 80, 220)
-st.Thickness = 2
-st.Parent = f
-
-local h = Instance.new"Frame"
-h.Size = UDim2.new(1, 0, 0, 36)
-h.BackgroundColor3 = Color3.fromRGB(25, 18, 38)
-h.BorderSizePixel = 0
-h.ZIndex = 11
-h.Parent = f
-Instance.new("UICorner", h).CornerRadius = UDim.new(0, 10)
-
-local ti = Instance.new"TextLabel"
-ti.Size = UDim2.new(0.7, 0, 1, 0)
-ti.Position = UDim2.new(0, 12, 0, 0)
-ti.BackgroundTransparency = 1
-ti.Text = "UltimateMM2 Hub"
-ti.TextColor3 = Color3.fromRGB(240, 220, 255)
-ti.TextSize = 16
-ti.Font = Enum.Font.GothamBold
-ti.TextXAlignment = Enum.TextXAlignment.Left
-ti.ZIndex = 12
-ti.Parent = h
-
-local mb = Instance.new"TextButton"
-mb.Size = UDim2.new(0, 30, 0, 26)
-mb.Position = UDim2.new(1, -36, 0.5, -13)
-mb.BackgroundColor3 = Color3.fromRGB(60, 40, 90)
-mb.BorderSizePixel = 0
-mb.Text = "—"
-mb.TextColor3 = Color3.fromRGB(255, 255, 255)
-mb.TextSize = 16
-mb.Font = Enum.Font.GothamBold
-mb.ZIndex = 12
-mb.Parent = h
-Instance.new("UICorner", mb).CornerRadius = UDim.new(0, 6)
-
-local ob = Instance.new"TextButton"
-ob.Size = UDim2.new(0, 45, 0, 45)
-ob.Position = UDim2.new(0.05, 0, 0.1, 0)
-ob.BackgroundColor3 = Color3.fromRGB(25, 18, 38)
-ob.BorderSizePixel = 0
-ob.Text = "U"
-ob.TextColor3 = Color3.fromRGB(200, 100, 255)
-ob.TextSize = 24
-ob.Font = Enum.Font.GothamBold
-ob.Visible = false
-ob.Active = true
-ob.ZIndex = 100
-ob.Parent = s
-Instance.new("UICorner", ob).CornerRadius = UDim.new(0, 10)
-local os = Instance.new"UIStroke"
-os.Color = Color3.fromRGB(160, 80, 220)
-os.Thickness = 2
-os.Parent = ob
-
-local tf = Instance.new"Frame"
-tf.Size = UDim2.new(1, -16, 0, 32)
-tf.Position = UDim2.new(0, 8, 0, 42)
-tf.BackgroundTransparency = 1
-tf.ZIndex = 11
-tf.Parent = f
-
-local cp = Instance.new"Frame"
-cp.Size = UDim2.new(1, -16, 1, -82)
-cp.Position = UDim2.new(0, 8, 0, 78)
-cp.BackgroundTransparency = 1
-cp.ZIndex = 11
-cp.Parent = f
-
-local tabs = {"VISUALS", "COMBAT", "PLAYER", "SETTINGS"}
-local tcf = {}
-local tb = {}
-local ee, ne, ce, ap, ac, ax, sh, fl, nv = false, false, false, false, false, false, false, false, false
-local hl, nt = {}, {}
-
-local function gr(pl)
-    local c = pl.Character
-    local b = pl:FindFirstChild"Backpack"
-    local function ci(n)
-        return (c and c:FindFirstChild(n)) or (b and b:FindFirstChild(n))
-    end
-    if ci"Knife" then return "Murderer" end
-    if ci"Gun" then return "Sheriff" end
-    return "Innocent"
+local function isPlayerAlive(c)
+if not c then return false end
+local hum = c:FindFirstChildOfClass("Humanoid")
+local hrp = c:FindFirstChild("HumanoidRootPart")
+return hum and hrp and hum.Health > 0
 end
 
-local function tp(h, t)
-    if not h or not t then return end
-    if firetouchinterest then
-        pcall(function() firetouchinterest(h, t, 0) firetouchinterest(h, t, 1) end)
-    else
-        h.CFrame = t.CFrame
-    end
+local function getMurdererHRP()
+for _, p in ipairs(P:GetPlayers()) do
+if p ~= LP and getRole(p) == "Murderer" and isPlayerAlive(p.Character) then
+return p.Character:FindFirstChild("HumanoidRootPart")
+end
+end
+return nil
 end
 
-local function ct(pa, tt, py, cb)
-    local r = Instance.new"Frame"
-    r.Size = UDim2.new(1, 0, 0, 36)
-    r.Position = UDim2.new(0, 0, 0, py)
-    r.BackgroundTransparency = 1
-    r.ZIndex = 12
-    r.Parent = pa
+local function getClosestCoin(hrp)
+local closestPart = nil
+local shortestDist = 1000
+local currentTime = tick()
 
-    local l = Instance.new"TextLabel"
-    l.Size = UDim2.new(0.7, 0, 1, 0)
-    l.BackgroundTransparency = 1
-    l.Text = tt
-    l.TextColor3 = Color3.fromRGB(230, 220, 245)
-    l.TextSize = 13
-    l.Font = Enum.Font.GothamMedium
-    l.TextXAlignment = Enum.TextXAlignment.Left
-    l.ZIndex = 13
-    l.Parent = r
-
-    local btn = Instance.new"TextButton"
-    btn.Size = UDim2.new(0, 48, 0, 24)
-    btn.Position = UDim2.new(1, -50, 0.5, -12)
-    btn.BackgroundColor3 = Color3.fromRGB(45, 35, 65)
-    btn.BorderSizePixel = 0
-    btn.Text = ""
-    btn.ZIndex = 13
-    btn.Parent = r
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
-
-    local ci = Instance.new"Frame"
-    ci.Size = UDim2.new(0, 18, 0, 18)
-    ci.Position = UDim2.new(0, 3, 0.5, -9)
-    ci.BackgroundColor3 = Color3.fromRGB(200, 180, 220)
-    ci.BorderSizePixel = 0
-    ci.ZIndex = 14
-    ci.Parent = btn
-    Instance.new("UICorner", ci).CornerRadius = UDim.new(1, 0)
-
-    local st = false
-    btn.Activated:Connect(function()
-        st = not st
-        local tc = st and Color3.fromRGB(150, 70, 220) or Color3.fromRGB(45, 35, 65)
-        local tp = st and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
-        T:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = tc}):Play()
-        T:Create(ci, TweenInfo.new(0.15), {Position = tp}):Play()
-        cb(st)
-    end)
+for coin, t in pairs(collectedCoins) do
+if currentTime - t > 3 then collectedCoins[coin] = nil end
 end
 
-for i, tn in ipairs(tabs) do
-    local b = Instance.new"TextButton"
-    b.Size = UDim2.new(0.23, 0, 1, 0)
-    b.Position = UDim2.new((i - 1) * 0.25, 0, 0, 0)
-    b.BackgroundColor3 = (i == 1) and Color3.fromRGB(75, 35, 125) or Color3.fromRGB(25, 18, 38)
-    b.BorderSizePixel = 0
-    b.Text = tn
-    b.TextColor3 = Color3.fromRGB(255, 255, 255)
-    b.TextSize = 10
-    b.Font = Enum.Font.GothamBold
-    b.ZIndex = 12
-    b.Parent = tf
-    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
-    tb[tn] = b
-
-    local c = Instance.new"Frame"
-    c.Size = UDim2.new(1, 0, 1, 0)
-    c.BackgroundTransparency = 1
-    c.Visible = (i == 1)
-    c.ZIndex = 12
-    c.Parent = cp
-    tcf[tn] = c
-
-    if tn == "VISUALS" then
-        ct(c, "ESP (Подсветка)", 5, function(s) ee = s end)
-        ct(c, "NameTags (Имена)", 45, function(s) ne = s end)
-    elseif tn == "COMBAT" then
-        ct(c, "Aim Bot", 5, function(s) ce = s end)
-        ct(c, "Auto Pick Gun", 45, function(s) ap = s end)
-    elseif tn == "PLAYER" then
-        ct(c, "Auto Farm Coins", 5, function(s) ac = s end)
-        ct(c, "Auto Farm XP", 45, function(s) ax = s end)
-        ct(c, "Speed Hack", 85, function(s) sh = s end)
-        ct(c, "Fly Mode", 125, function(s) fl = s end)
-    elseif tn == "SETTINGS" then
-        ct(c, "Night Vision", 5, function(s) nv = s end)
-        local clb = Instance.new"TextButton"
-        clb.Size = UDim2.new(1, 0, 0, 36)
-        clb.Position = UDim2.new(0, 0, 0, 50)
-        clb.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
-        clb.BorderSizePixel = 0
-        clb.Text = "Закрыть скрипт"
-        clb.TextColor3 = Color3.new(1, 1, 1)
-        clb.TextSize = 12
-        clb.Font = Enum.Font.GothamBold
-        clb.ZIndex = 13
-        clb.Parent = c
-        Instance.new("UICorner", clb).CornerRadius = UDim.new(0, 6)
-        clb.Activated:Connect(function() s:Destroy() end)
-    end
-
-    b.Activated:Connect(function()
-        for _, ot in ipairs(tabs) do
-            tb[ot].BackgroundColor3 = Color3.fromRGB(25, 18, 38)
-            tcf[ot].Visible = false
-        end
-        b.BackgroundColor3 = Color3.fromRGB(75, 35, 125)
-        tcf[tn].Visible = true
-    end)
+for pos, t in pairs(collectedPositions) do
+if currentTime - t > 3 then collectedPositions[pos] = nil end
 end
 
-local mv = true
-local function tm()
-    mv = not mv
-    f.Visible = mv
-    ob.Visible = not mv
-end
-mb.Activated:Connect(tm)
-ob.Activated:Connect(tm)
+local function evaluate(obj)
+if collectedCoins[obj] then return end
+local tp = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart", true)
+if tp and not collectedCoins[tp] then
+if tp.Position.Y > 500 or tp.Position.Y < -200 then return end
 
-G.RenderStepped:Connect(function()
-    if ee then
-        for _, pl in ipairs(P:GetPlayers()) do
-            if pl ~= p and pl.Character then
-                local c = pl.Character
-                local h = hl[pl]
-                if not h or h.Parent ~= c then
-                    if h then pcall(function() h:Destroy() end) end
-                    h = Instance.new"Highlight"
-                    h.FillTransparency = 0.4
-                    h.Parent = c
-                    hl[pl] = h
-                end
-                local r = gr(pl)
-                h.FillColor = (r == "Murderer" and Color3.fromRGB(255, 40, 40)) or (r == "Sheriff" and Color3.fromRGB(40, 120, 255)) or Color3.fromRGB(40, 255, 40)
-            end
-        end
-    else
-        for pl, h in pairs(hl) do if h then pcall(function() h:Destroy() end) end hl[pl] = nil end
-    end
+local posIgnored = false
+for pPos, _ in pairs(collectedPositions) do
+if (tp.Position - pPos).Magnitude < 4 then posIgnored = true; break end
+end
+if posIgnored then return end
+
+local dist = (hrp.Position - tp.Position).Magnitude
+if dist < shortestDist then
+shortestDist = dist
+closestPart = tp
+end
+end
+end
+
+for _, obj in ipairs(WS:GetChildren()) do
+if obj.Name == "CoinContainer" or obj.Name == "Coins" then
+for _, coin in ipairs(obj:GetChildren()) do evaluate(coin) end
+end
+end
+
+for _, obj in ipairs(WS:GetDescendants()) do
+if obj.Name == "Coin_Server" or obj.Name == "CoinVisual" or obj.Name == "Coin" then evaluate(obj) end
+end
+
+return closestPart
+end
+
+local function tweenToTarget(hrp, tp)
+if not hrp or not tp then return end
+
+if tp.Position.Y > 500 or tp.Position.Y < -200 then collectedCoins[tp] = tick(); return end
+
+local targetPos = tp.Position
+local distance = (hrp.Position - targetPos).Magnitude
+if distance > 1000 then return end
+
+if firetouchinterest then pcall(function() firetouchinterest(hrp, tp, 0); firetouchinterest(hrp, tp, 1) end) end
+
+local speed = 26
+local timeTaken = distance / speed
+if timeTaken < 0.05 then collectedCoins[tp] = tick(); collectedPositions[targetPos] = tick(); return end
+
+local tweenInfo = TweenInfo.new(timeTaken, Enum.EasingStyle.Linear)
+local tween = TS:Create(hrp, tweenInfo, {CFrame = tp.CFrame})
+tween:Play()
+
+local completed = false
+local conn
+conn = tween.Completed:Connect(function()
+completed = true
+if conn then conn:Disconnect() end
+end)
+
+local startTick = tick()
+while not completed and tick() - startTick < timeTaken + 0.5 do
+local c = LP.Character
+if not c or not isPlayerAlive(c) or not autoFarmE then tween:Cancel(); break end
+
+if avoidMurdE then
+local murdHRP = getMurdererHRP()
+if murdHRP and (hrp.Position - murdHRP.Position).Magnitude < avoidRadius then tween:Cancel(); break end
+end
+
+task.wait(0.05)
+end
+
+if not completed then pcall(function() tween:Cancel() end); if conn then conn:Disconnect() end end
+
+collectedCoins[tp] = tick()
+if tp.Parent then collectedCoins[tp.Parent] = tick() end
+collectedPositions[targetPos] = tick()
+
+task.wait(0.08)
+end
+
+-- Оптимизация ESP через задержку (троттлинг), чтобы игра не лагала
+local espTick = 0
+RS.RenderStepped:Connect(function()
+local now = tick()
+if now - espTick > 0.15 then
+espTick = now
+if espE then
+for _,p in ipairs(P:GetPlayers())do
+if p~=LP and p.Character then
+local c,hl=p.Character,hls[p]
+if not hl or hl.Parent~=c then
+if hl then pcall(function() hl:Destroy()end)end
+hl=Instance.new("Highlight",c)hl.FillTransparency,hl.OutlineTransparency=0.4,0;hls[p]=hl
+end
+local r=getRole(p)hl.FillColor=r=="Murderer"and Color3.fromRGB(255,40,40)or r=="Sheriff"and Color3.fromRGB(40,120,255)or Color3.fromRGB(40,255,40)
+end
+end
+else
+for p,hl in pairs(hls)do if hl then pcall(function() hl:Destroy()end)hls[p]=nil end end
+end
+end
+
+if aimE then
+pcall(function()
+local mr=getRole(LP)
+if mr=="Murderer" or mr=="Sheriff" then
+local cam=WS.CurrentCamera
+local closestDist = math.huge
+local targetPart = nil
+for _,p in ipairs(P:GetPlayers())do
+if p~=LP and p.Character and p.Character:FindFirstChild("HumanoidRootPart")then
+local tr=getRole(p)
+if(mr=="Murderer" and tr=="Sheriff")or(mr=="Sheriff" and tr=="Murderer")then
+local rp = p.Character.HumanoidRootPart
+local dist = (rp.Position - cam.CFrame.Position).Magnitude
+if dist < closestDist then closestDist = dist; targetPart = rp end
+end
+end
+end
+if targetPart then cam.CFrame = CFrame.new(cam.CFrame.Position, targetPart.Position) end
+end
+end)
+end
+
+pcall(function()
+local c=LP.Character
+if c then
+local hum=c:FindFirstChildOfClass("Humanoid")
+if hum and not autoFarmE then hum.WalkSpeed=speedE and 31 or(hum.WalkSpeed==31 and 16 or hum.WalkSpeed) end
+end
+end)
+end)
+
+task.spawn(function()
+local wasActive = false
+while true do
+task.wait(0.2)
+if autoFarmE then
+if not wasActive then wasActive = true; setControlsLocked(true) end
+pcall(function()
+local c = LP.Character
+if isPlayerAlive(c) then
+local hrp = c.HumanoidRootPart
+local hum = c:FindFirstChildOfClass("Humanoid")
+
+if hum then
+hum.WalkSpeed = 0
+hum.JumpPower = 0
+for _, track in ipairs(hum:GetPlayingAnimationTracks()) do track:Stop() end
+end
+
+while autoFarmE and isPlayerAlive(c) do
+if avoidMurdE then
+local murdHRP = getMurdererHRP()
+if murdHRP then
+local mDist = (hrp.Position - murdHRP.Position).Magnitude
+if mDist < avoidRadius then
+local escapeDir = (hrp.Position - murdHRP.Position).Unit
+local safePos = hrp.Position + (escapeDir * (avoidRadius - mDist + 20))
+safePos = Vector3.new(safePos.X, hrp.Position.Y, safePos.Z)
+
+local escapeTween = TS:Create(hrp, TweenInfo.new(0.6, Enum.EasingStyle.Linear), {CFrame = CFrame.new(safePos)})
+escapeTween:Play()
+task.wait(0.6)
+continue
+end
+end
+end
+
+local targetCoin = getClosestCoin(hrp)
+if targetCoin then tweenToTarget(hrp, targetCoin) else break end
+end
+end
+end)
+else
+if wasActive then
+wasActive = false
+setControlsLocked(false)
+pcall(function()
+local c = LP.Character
+if c then
+local hum = c:FindFirstChildOfClass("Humanoid")
+if hum then hum.JumpPower = 50; hum.WalkSpeed = speedE and 31 or 16 end
+end
+end)
+end
+end
+end
+end)
+
+task.spawn(function()
+while true do
+task.wait(0.5)
+if autoGunE then
+pcall(function()
+local c = LP.Character
+if isPlayerAlive(c) then
+local hrp = c.HumanoidRootPart
+for _,obj in ipairs(WS:GetDescendants())do
+if not autoGunE then break end
+if obj.Name=="GunDrop" or obj.Name=="GunServer" then
+local tp=obj:IsA("BasePart")and obj or obj:FindFirstChildWhichIsA("BasePart")
+if tp then tweenToTarget(hrp,tp) end
+end
+end
+end
+end)
+end
+end
+end)
+
+local function bBtn(b,cb)
+b.Activated:Connect(function()
+pcall(function()
+TS:Create(b,TweenInfo.new(0.06),{Size=b.Size-UDim2.new(0,4,0,4)}):Play()
+task.delay(0.06,function() TS:Create(b,TweenInfo.new(0.06),{Size=b.Size+UDim2.new(0,4,0,4)}):Play()end)
+end)
+cb()
+end)
+end
+
+local function cTogGrid(par,txt,x,y,cb,disabled)
+local r=Instance.new("Frame",par)r.Size,r.Position,r.BackgroundTransparency=UDim2.new(0.48,0,0,32),UDim2.new(x,0,0,y),1
+local l=Instance.new("TextLabel",r)l.Size,l.BackgroundTransparency,l.Text,l.TextColor3,l.TextSize,l.Font,l.TextXAlignment=UDim2.new(1,-42,1,0),1,txt,disabled and Color3.fromRGB(130,120,140) or Color3.fromRGB(230,220,245),10,Enum.Font.GothamMedium,Enum.TextXAlignment.Left
+local tb=Instance.new("TextButton",r)tb.Size,tb.Position,tb.BackgroundColor3,tb.BorderSizePixel,tb.Text=UDim2.new(0,38,0,22),UDim2.new(1,-38,0.5,-11),disabled and Color3.fromRGB(30,25,40) or Color3.fromRGB(45,35,65),0,""
+Instance.new("UICorner",tb).CornerRadius=UDim.new(1,0)
+local c=Instance.new("Frame",tb)c.Size,c.Position,c.BackgroundColor3,c.BorderSizePixel=UDim2.new(0,16,0,16),UDim2.new(0,3,0.5,-8),disabled and Color3.fromRGB(80,70,95) or Color3.fromRGB(200,180,220),0
+Instance.new("UICorner",c).CornerRadius=UDim.new(1,0)
+
+if not disabled then
+local st=false
+bBtn(tb,function()
+st=not st
+TS:Create(tb,TweenInfo.new(0.15),{BackgroundColor3=st and Color3.fromRGB(150,70,220)or Color3.fromRGB(45,35,65)}):Play()
+TS:Create(c,TweenInfo.new(0.15),{Position=st and UDim2.new(1,-19,0.5,-8)or UDim2.new(0,3,0.5,-8),BackgroundColor3=st and Color3.new(1,1,1)or Color3.fromRGB(200,180,220)}):Play()
+cb(st)
+end)
+end
+end
+
+for i,tn in ipairs(tabs)do
+local b=Instance.new("TextButton",TF)b.Size,b.Position,b.BackgroundColor3,b.BorderSizePixel,b.Text,b.TextColor3,b.TextSize,b.Font=UDim2.new(0.485,0,1,0),UDim2.new((i-1)*0.515,0,0,0),i==1 and Color3.fromRGB(75,35,125)or Color3.fromRGB(22,18,32),0,tn,i==1 and Color3.new(1,1,1)or Color3.fromRGB(150,130,180),11,Enum.Font.GothamBold
+Instance.new("UICorner",b).CornerRadius=UDim.new(0,6);tBtns[tn]=b
+local cnt=Instance.new("Frame",CP)cnt.Size,cnt.BackgroundTransparency,cnt.BorderSizePixel,cnt.Visible=UDim2.new(1,0,1,0),1,0,i==1;tContent[tn]=cnt
+
+if tn=="FEATURES" then 
+cTogGrid(cnt,"ESP",0,5,function(s) espE=s end)
+cTogGrid(cnt,"Aim Bot",0.52,5,function(s) aimE=s end)
+cTogGrid(cnt,"Auto Gun",0,42,function(s) autoGunE=s end)
+cTogGrid(cnt,"Speed 31",0.52,42,function(s) speedE=s end)
+
+local afSub=Instance.new("Frame",cnt)afSub.Size,afSub.Position,afSub.BackgroundColor3,afSub.BackgroundTransparency,afSub.BorderSizePixel=UDim2.new(1,0,0,82),UDim2.new(0,0,0,79),Color3.fromRGB(20,15,30),0.3,0
+Instance.new("UICorner",afSub).CornerRadius=UDim.new(0,6)local afSubS=Instance.new("UIStroke",afSub)afSubS.Color,afSubS.Thickness=Color3.fromRGB(130,60,190),1.2
+
+local r1=Instance.new("Frame",afSub)r1.Size,r1.Position,r1.BackgroundTransparency=UDim2.new(0.48,0,0,32),UDim2.new(0.02,0,0,6),1
+local l1=Instance.new("TextLabel",r1)l1.Size,l1.BackgroundTransparency,l1.Text,l1.TextColor3,l1.TextSize,l1.Font,l1.TextXAlignment=UDim2.new(1,-42,1,0),1,"Auto Farm",Color3.fromRGB(230,220,245),10,Enum.Font.GothamMedium,Enum.TextXAlignment.Left
+local tb1=Instance.new("TextButton",r1)tb1.Size,tb1.Position,tb1.BackgroundColor3,tb1.BorderSizePixel,tb1.Text=UDim2.new(0,38,0,22),UDim2.new(1,-38,0.5,-11),Color3.fromRGB(45,35,65),0,""
+Instance.new("UICorner",tb1).CornerRadius=UDim.new(1,0)local c1=Instance.new("Frame",tb1)c1.Size,c1.Position,c1.BackgroundColor3,c1.BorderSizePixel=UDim2.new(0,16,0,16),UDim2.new(0,3,0.5,-8),Color3.fromRGB(200,180,220),0
+Instance.new("UICorner",c1).CornerRadius=UDim.new(1,0)
+bBtn(tb1,function()
+autoFarmE=not autoFarmE
+TS:Create(tb1,TweenInfo.new(0.15),{BackgroundColor3=autoFarmE and Color3.fromRGB(150,70,220)or Color3.fromRGB(45,35,65)}):Play()
+TS:Create(c1,TweenInfo.new(0.15),{Position=autoFarmE and UDim2.new(1,-19,0.5,-8)or UDim2.new(0,3,0.5,-8),BackgroundColor3=autoFarmE and Color3.new(1,1,1)or Color3.fromRGB(200,180,220)}):Play()
+end)
+
+local r2=Instance.new("Frame",afSub)r2.Size,r2.Position,r2.BackgroundTransparency=UDim2.new(0.48,0,0,32),UDim2.new(0.52,0,0,6),1
+local l2=Instance.new("TextLabel",r2)l2.Size,l2.BackgroundTransparency,l2.Text,l2.TextColor3,l2.TextSize,l2.Font,l2.TextXAlignment=UDim2.new(1,-42,1,0),1,"Избегать убийцу",Color3.fromRGB(230,220,245),10,Enum.Font.GothamMedium,Enum.TextXAlignment.Left
+local tb2=Instance.new("TextButton",r2)tb2.Size,tb2.Position,tb2.BackgroundColor3,tb2.BorderSizePixel,tb2.Text=UDim2.new(0,38,0,22),UDim2.new(1,-38,0.5,-11),Color3.fromRGB(45,35,65),0,""
+Instance.new("UICorner",tb2).CornerRadius=UDim.new(1,0)local c2=Instance.new("Frame",tb2)c2.Size,c2.Position,c2.BackgroundColor3,c2.BorderSizePixel=UDim2.new(0,16,0,16),UDim2.new(0,3,0.5,-8),Color3.fromRGB(200,180,220),0
+Instance.new("UICorner",c2).CornerRadius=UDim.new(1,0)
+bBtn(tb2,function()
+avoidMurdE=not avoidMurdE
+TS:Create(tb2,TweenInfo.new(0.15),{BackgroundColor3=avoidMurdE and Color3.fromRGB(150,70,220)or Color3.fromRGB(45,35,65)}):Play()
+TS:Create(c2,TweenInfo.new(0.15),{Position=avoidMurdE and UDim2.new(1,-19,0.5,-8)or UDim2.new(0,3,0.5,-8),BackgroundColor3=avoidMurdE and Color3.new(1,1,1)or Color3.fromRGB(200,180,220)}):Play()
+end)
+
+local rLbl=Instance.new("TextLabel",afSub)rLbl.Size,rLbl.Position,rLbl.BackgroundTransparency,rLbl.Text,rLbl.TextColor3,rLbl.TextSize,rLbl.Font,rLbl.TextXAlignment=UDim2.new(0,180,0,26),UDim2.new(0,8,0,46),1,"Радиус от убийцы ("..avoidRadius..")",Color3.fromRGB(210,200,230),11,Enum.Font.GothamMedium,Enum.TextXAlignment.Left
+local rMn=Instance.new("TextButton",afSub)rMn.Size,rMn.Position,rMn.BackgroundColor3,rMn.BorderSizePixel,rMn.Text,rMn.TextColor3,rMn.TextSize,rMn.Font=UDim2.new(0,35,0,24),UDim2.new(1,-82,0,47),Color3.fromRGB(50,35,80),0,"-",Color3.new(1,1,1),16,Enum.Font.GothamBold
+Instance.new("UICorner",rMn).CornerRadius=UDim.new(0,6)
+local rPl=Instance.new("TextButton",afSub)rPl.Size,rPl.Position,rPl.BackgroundColor3,rPl.BorderSizePixel,rPl.Text,rPl.TextColor3,rPl.TextSize,rPl.Font=UDim2.new(0,35,0,24),UDim2.new(1,-42,0,47),Color3.fromRGB(50,35,80),0,"+",Color3.new(1,1,1),16,Enum.Font.GothamBold
+Instance.new("UICorner",rPl).CornerRadius=UDim.new(0,6)
+bBtn(rPl,function()if avoidRadius < 300 then avoidRadius = avoidRadius + 20; rLbl.Text = "Радиус от убийцы ("..avoidRadius..")" end end)
+bBtn(rMn,function()if avoidRadius > 40 then avoidRadius = avoidRadius - 20; rLbl.Text = "Радиус от убийцы ("..avoidRadius..")" end end)
+
+elseif tn=="SETTINGS" then
+local l=Instance.new("TextLabel",cnt)l.Size,l.Position,l.BackgroundTransparency,l.Text,l.TextColor3,l.TextSize,l.Font,l.TextXAlignment=UDim2.new(0,150,0,30),UDim2.new(0,8,0,5),1,"Масштаб меню",Color3.fromRGB(210,200,230),12,Enum.Font.GothamMedium,Enum.TextXAlignment.Left
+local mn=Instance.new("TextButton",cnt)mn.Size,mn.Position,mn.BackgroundColor3,mn.BorderSizePixel,mn.Text,mn.TextColor3,mn.TextSize,mn.Font=UDim2.new(0,40,0,26),UDim2.new(0,175,0,7),Color3.fromRGB(50,35,80),0,"-",Color3.new(1,1,1),18,Enum.Font.GothamBold
+Instance.new("UICorner",mn).CornerRadius=UDim.new(0,6)
+local pl=Instance.new("TextButton",cnt)pl.Size,pl.Position,pl.BackgroundColor3,pl.BorderSizePixel,pl.Text,pl.TextColor3,pl.TextSize,pl.Font=UDim2.new(0,40,0,26),UDim2.new(0,220,0,7),Color3.fromRGB(50,35,80),0,"+",Color3.new(1,1,1),16,Enum.Font.GothamBold
+Instance.new("UICorner",pl).CornerRadius=UDim.new(0,6)
+bBtn(pl,function() if MS.Scale<1.4 then MS.Scale=MS.Scale+0.1 end end)
+bBtn(mn,function() if MS.Scale>0.7 then MS.Scale=MS.Scale-0.1 end end)
+end
+
+bBtn(b,function()
+for n,f in pairs(tContent)do f.Visible=(n==tn)end
+for n,tb in pairs(tBtns)do
+local act=(n==tn)
+TS:Create(tb,TweenInfo.new(0.15),{BackgroundColor3=act and Color3.fromRGB(75,35,125)or Color3.fromRGB(22,18,32),TextColor3=act and Color3.new(1,1,1)or Color3.fromRGB(150,130,180)}):Play()
+end
+end)
+end
+
+bBtn(MB,function() MF.Visible=false;OB.Visible=true end)
+bBtn(OB,function() OB.Visible=false;MF.Visible=true end)
+
+local dragging, dragInput, dragStart, startPos
+H.InputBegan:Connect(function(input)
+if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+dragging = true
+dragStart = input.Position
+startPos = MF.Position
+input.Changed:Connect(function()
+if input.UserInputState == Enum.UserInputState.End then dragging = false end
+end)
+end
+end)
+H.InputChanged:Connect(function(input)
+if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+end)
+UIS.InputChanged:Connect(function(input)
+if input == dragInput and dragging then
+local delta = input.Position - dragStart
+MF.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
 end)
