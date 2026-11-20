@@ -942,6 +942,22 @@ function love.mousepressed(x, y, b, istouch) if not istouch then press("m", x, y
 function love.mousemoved(x, y, _, _, istouch) if not istouch and love.mouse.isDown(1) then move("m", x, y) end end
 function love.mousereleased(_, _, _, istouch) if not istouch then release("m") end end
 function love.keypressed(k)
+  if state == "menu" then
+    if k == "return" or k == "kpenter" or k == "space" then
+      state, started = "game", true
+    elseif k == "n" then
+      newGame()
+      state, started = "game", true
+    elseif k == "c" then
+      creative = not creative
+      if not creative and tab > 3 then tab = 1 end
+    elseif k == "escape" and not started then
+      love.event.quit()
+    elseif k == "escape" and started then
+      state = "game"
+    end
+    return
+  end
   if k == "escape" then
     if craftOpen then craftOpen = false
     elseif state == "game" then state, stick, held = "menu", nil, {}
@@ -1062,9 +1078,14 @@ function love.update(dt)
   if kb.isDown("d", "right") then mx = mx + 1 end
   if kb.isDown("w", "up") then my = my - 1 end
   if kb.isDown("s", "down") then my = my + 1 end
-  local moving = mx ~= 0 or my ~= 0
   local mag = math.sqrt(mx * mx + my * my)
-  local running = moving and mag > 0.85 and not player.mount and player.sta > 0 and not kb.isDown("lctrl")
+  if mag > 1 then
+    mx, my = mx / mag, my / mag
+    mag = 1
+  end
+  local moving = mx ~= 0 or my ~= 0
+  local sprintInput = (stick ~= nil and mag > 0.85) or kb.isDown("lshift", "rshift")
+  local running = moving and sprintInput and not player.mount and player.sta > 0 and not kb.isDown("lctrl")
   if player.mount then player.mount.moving = moving end
   if moving then
     local spd = player.mount and player.mount.ride or (running and 58 or 36)
