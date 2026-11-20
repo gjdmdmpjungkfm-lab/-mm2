@@ -534,13 +534,13 @@ function love.wheelmoved(_,y)
 end
 
 function love.touchpressed(id,x,y)
-    love.mousepressed(x*screenW,y*screenH,1)
+    love.mousepressed(x,y,1)
 end
 function love.touchreleased(id,x,y)
-    love.mousereleased(x*screenW,y*screenH,1)
+    love.mousereleased(x,y,1)
 end
 function love.touchmoved(id,x,y,dx,dy)
-    love.mousemoved(x*screenW,y*screenH,dx*screenW,dy*screenH)
+    love.mousemoved(x,y,dx,dy)
 end
 
 function love.keypressed(k)
