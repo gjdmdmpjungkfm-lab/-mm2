@@ -578,7 +578,9 @@ function love.load()
       local head = x >= 28 and x <= 36 and y >= 9 and y <= 14
       local neck = style == "bronto" and x >= 25 and x <= 30 and y >= 4 and y <= 15
       local legs = ((x >= 12 and x <= 15) or (x >= 22 and x <= 25)) and y >= 18 and y <= 26
-      local shape = bodyPart or tail or head or neck or legs
+      local plates = style == "stego" and x >= 11 and x <= 27 and y >= 5 and y <= 11 and (x + y) % 4 <= 1
+      local horns = style == "trike" and x >= 33 and x <= 38 and y >= 5 and y <= 9
+      local shape = bodyPart or tail or head or neck or legs or plates or horns
       if style == "ptera" then
         shape = shape or (x >= 7 and x <= 33 and y >= 3 and y <= 13 and math.abs(y - (13 - math.abs(x - 20) * 0.55)) < 2)
       end
