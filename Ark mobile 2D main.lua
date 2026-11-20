@@ -361,7 +361,7 @@ end
 
 local function addBuilding(kind, cx, cy)
   local d = BD[kind]
-  local b = {kind = kind, cx = cx, cy = cy, hp = d.hp or 1, t = d.timer}
+  local b = {kind = kind, cx = cx, cy = cy, hp = d.hp or 1, t = d.timer, rot = player.buildRot or 0}
   if d.floor then floors[key(cx, cy)] = b else grid[key(cx, cy)] = b end
   bl[#bl + 1] = b
   return b
@@ -488,7 +488,7 @@ end
 local function respawn()
   if player and player.mount then player.mount.mounted = false end
   player = {x = spawnPt.x, y = spawnPt.y, dir = 1, fx = 1, fy = 0, hp = 100, food = 100, water = 100, sta = 100, staDelay = 0,
-            tools = {}, weap = "fists", build = nil, mount = nil,
+            tools = {}, weap = "fists", build = nil, buildRot = 0, mount = nil,
             atkcd = 0, swing = 0, flash = 0, step = 0, dead = false, dt = 0}
   inv = {}
   for _, k in ipairs(ITEMS) do inv[k] = 0 end
@@ -973,7 +973,11 @@ local function press(id, x, y)
     if shown and dist(x, y, b.x, b.y) <= b.r then
       held[id] = k
       if k == "A" then act(true)
-      elseif k == "B" then use()
+      elseif k == "B" then
+        if player.build then
+          player.buildRot = ((player.buildRot or 0) + math.pi / 2) % (math.pi * 2)
+          say("Постройка повёрнута")
+        else use() end
       elseif k == "C" then openBag()
       elseif k == "F" then swapWeapon()
       else player.build = nil; say("Отменено") end
@@ -1025,6 +1029,9 @@ function love.keypressed(k)
   elseif k == "e" then use()
   elseif k == "c" then openBag()
   elseif k == "q" then swapWeapon()
+  elseif k == "r" and player.build then
+    player.buildRot = ((player.buildRot or 0) + math.pi / 2) % (math.pi * 2)
+    say("Постройка повёрнута")
   elseif k == "x" then player.build = nil end
 end
 
@@ -1225,7 +1232,11 @@ local function drawB(b, tint)
     ds(s, b.cx * CELL + CELL / 2, (b.cy + 1) * CELL - 1, 1, math.floor(clock * 6) % 2 == 0 and 1 or -1, tint)
   else
     if tint then lg.setColor(tint) else lg.setColor(1, 1, 1) end
-    lg.draw(s.img, b.cx * CELL, (b.cy + 1) * CELL, 0, 1, 1, 0, s.h)
+    if b.rot and b.rot ~= 0 and not BD[b.kind].floor then
+      lg.draw(s.img, b.cx * CELL + CELL / 2, b.cy * CELL + CELL / 2, b.rot, 1, 1, s.w / 2, s.h / 2)
+    else
+      lg.draw(s.img, b.cx * CELL, (b.cy + 1) * CELL, 0, 1, 1, 0, s.h)
+    end
   end
 end
 
@@ -1467,7 +1478,7 @@ function love.draw()
   if player.build and not player.dead then
     local gx, gy = targetCell()
     local okp = canPlace(player.build, gx, gy)
-    drawB({kind = player.build, cx = gx, cy = gy}, okp and {0.5, 1, 0.5, 0.65} or {1, 0.4, 0.4, 0.65})
+    drawB({kind = player.build, cx = gx, cy = gy, rot = player.buildRot or 0}, okp and {0.5, 1, 0.5, 0.65} or {1, 0.4, 0.4, 0.65})
   end
   lg.pop()
 
@@ -1572,7 +1583,7 @@ function love.draw()
       lg.setColor(1, 1, 1, 0.95)
       local label
       if k == "A" then label = player.build and "ПОСТАВИТЬ" or (player.mount and "УКУС" or "УДАР")
-      elseif k == "B" then label = useLabel()
+      elseif k == "B" then label = player.build and "ПОВОРОТ" or useLabel()
       elseif k == "C" then label = "СУМКА"
       elseif k == "D" then label = "ОТМЕНА"
       else label = WNAME[player.weap] end
