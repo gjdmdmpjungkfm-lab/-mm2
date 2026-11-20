@@ -3,7 +3,7 @@
 -- ПК: WASD/стрелки, Shift = бег, Пробел = удар, E = действие, C = сумка, Q = оружие, X = отмена, Esc = меню.
 
 local lg = love.graphics
-local WORLD, CELL = 1200, 12
+local WORLD, CELL = 2200, 12
 local LAKE = {x = 700, y = 500, w = 260, h = 200}
 local SP = {x = 400, y = 600}
 
@@ -183,9 +183,15 @@ local WP = {fists = {dmg = 1, torp = 3}, club = {dmg = 2, torp = 8}, spear = {dm
 local WNAME = {fists = "КУЛАКИ", club = "ДУБИНКА", spear = "КОПЬЁ"}
 
 local MOBDEF = {
-  dodo   = {name = "Додо",   spr = "dodo",   sc = 1, r = 3, hp = 20,  torp = 30,  need = 4,  diet = "herb", meat = 1, hide = 1, dmg = 0,  spd = 40, ride = 55, xp = 4,  xpt = 20, lv = {1, 10}, sad = {x = -2, y = 13}},
-  raptor = {name = "Раптор", spr = "raptor", sc = 1, r = 6, hp = 40,  torp = 50,  need = 6,  diet = "carn", meat = 2, hide = 2, dmg = 8,  spd = 30, ride = 85, xp = 12, xpt = 60, lv = {5, 25}, sad = {x = 1, y = 14}},
-  rex    = {name = "Рекс",   spr = "rex",    sc = 1, r = 10, hp = 120, torp = 220, need = 20, diet = "carn", meat = 5, hide = 6, dmg = 25, spd = 24, ride = 65, xp = 80, xpt = 300, lv = {30, 60}, sad = {x = 2, y = 25}},
+  dodo    = {name = "Додо",       spr = "dodo",    sc = 1,    r = 3,  hp = 20,  torp = 30,  need = 4,  diet = "herb", meat = 1, hide = 1, dmg = 0,  spd = 40, ride = 55, xp = 4,  xpt = 20,  lv = {1, 10}, sad = {x = -2, y = 13}},
+  parasaur= {name = "Паразавр",   spr = "parasaur",sc = 1.05, r = 6,  hp = 65,  torp = 65,  need = 7,  diet = "herb", meat = 3, hide = 3, dmg = 0,  spd = 48, ride = 95, xp = 16, xpt = 90,  lv = {3, 18}, sad = {x = 0, y = 15}},
+  trike   = {name = "Трицератопс", spr = "trike",   sc = 1.15, r = 9,  hp = 150, torp = 150, need = 14, diet = "herb", meat = 5, hide = 7, dmg = 12, spd = 22, ride = 70, xp = 35, xpt = 180, lv = {8, 30}, sad = {x = 0, y = 17}},
+  stego   = {name = "Стегозавр",  spr = "stego",   sc = 1.2,  r = 9,  hp = 180, torp = 170, need = 16, diet = "herb", meat = 6, hide = 8, dmg = 10, spd = 18, ride = 65, xp = 42, xpt = 210, lv = {10, 35}, sad = {x = 0, y = 18}},
+  bronto  = {name = "Бронтозавр", spr = "bronto",  sc = 1.55, r = 13, hp = 360, torp = 320, need = 28, diet = "herb", meat = 10,hide = 14,dmg = 0,  spd = 13, ride = 55, xp = 95, xpt = 450, lv = {20, 55}, sad = {x = 0, y = 24}},
+  raptor  = {name = "Раптор",     spr = "raptor",  sc = 1,    r = 6,  hp = 40,  torp = 50,  need = 6,  diet = "carn", meat = 2, hide = 2, dmg = 8,  spd = 30, ride = 85, xp = 12, xpt = 60,  lv = {5, 25}, sad = {x = 1, y = 14}},
+  carno   = {name = "Карнотавр",  spr = "carno",   sc = 1.2,  r = 9,  hp = 145, torp = 180, need = 17, diet = "carn", meat = 7, hide = 8, dmg = 18, spd = 28, ride = 78, xp = 65, xpt = 280, lv = {18, 45}, sad = {x = 1, y = 18}},
+  ptera   = {name = "Птеранодон", spr = "ptera",   sc = 1.05, r = 6,  hp = 75,  torp = 85,  need = 9,  diet = "carn", meat = 3, hide = 3, dmg = 5,  spd = 42, ride = 105,xp = 28, xpt = 140, lv = {8, 28}, sad = {x = 0, y = 13}},
+  rex     = {name = "Рекс",       spr = "rex",     sc = 1,    r = 10, hp = 120, torp = 220, need = 20, diet = "carn", meat = 5, hide = 6, dmg = 25, spd = 24, ride = 65, xp = 80, xpt = 300, lv = {30, 60}, sad = {x = 2, y = 25}},
 }
 
 local S = {}
@@ -455,11 +461,17 @@ end
 
 local function populate()
   mobs, res = {}, {}
-  for _ = 1, 120 do addRes("tree") end
-  for _ = 1, 60 do addRes("rock") end
-  for _ = 1, 40 do addRes("bush") end
-  for _ = 1, 25 do addMob("dodo") end
-  for _ = 1, 12 do addMob("raptor") end
+  for _ = 1, 230 do addRes("tree") end
+  for _ = 1, 110 do addRes("rock") end
+  for _ = 1, 75 do addRes("bush") end
+  for _ = 1, 24 do addMob("dodo") end
+  for _ = 1, 9 do addMob("parasaur") end
+  for _ = 1, 6 do addMob("trike") end
+  for _ = 1, 5 do addMob("stego") end
+  for _ = 1, 2 do addMob("bronto") end
+  for _ = 1, 10 do addMob("raptor") end
+  for _ = 1, 4 do addMob("carno") end
+  for _ = 1, 5 do addMob("ptera") end
   for _ = 1, 2 do addMob("rex") end
 end
 
@@ -555,6 +567,49 @@ function love.load()
       S.anim[kind][g] = {}
       for i, rows in ipairs(list) do S.anim[kind][g][i] = sprite(rows) end
     end
+  end
+
+  -- Новые динозавры рисуются прямо кодом: никаких внешних картинок не требуется.
+  local function makeDino(body, accent, style)
+    local dark = {0.09, 0.07, 0.06}
+    return mkImg(40, 30, function(x, y)
+      local bodyPart = ((x - 19) / 10)^2 + ((y - 15) / 5)^2 <= 1
+      local tail = x >= 3 and x <= 12 and y >= 13 - (12 - x) * 0.28 and y <= 17 + (12 - x) * 0.28
+      local head = x >= 28 and x <= 36 and y >= 9 and y <= 14
+      local neck = style == "bronto" and x >= 25 and x <= 30 and y >= 4 and y <= 15
+      local legs = ((x >= 12 and x <= 15) or (x >= 22 and x <= 25)) and y >= 18 and y <= 26
+      local shape = bodyPart or tail or head or neck or legs
+      if style == "ptera" then
+        shape = shape or (x >= 7 and x <= 33 and y >= 3 and y <= 13 and math.abs(y - (13 - math.abs(x - 20) * 0.55)) < 2)
+      end
+      if not shape then return nil end
+      local edge = not (((x - 19) / 9)^2 + ((y - 15) / 4)^2 < 0.88) and bodyPart
+      if edge or (tail and (x == 3 or y == 13 or y == 17)) or (head and (x == 28 or x == 36 or y == 9 or y == 14)) then
+        return dark[1], dark[2], dark[3], 1
+      end
+      if style == "stego" and x >= 11 and x <= 27 and y >= 5 and y <= 11 and (x + y) % 4 <= 1 then
+        return accent[1], accent[2], accent[3], 1
+      end
+      if style == "trike" and ((x >= 33 and x <= 38 and y >= 5 and y <= 9) or (x >= 30 and x <= 34 and y >= 6 and y <= 8)) then
+        return 0.92, 0.82, 0.58, 1
+      end
+      if style == "bronto" and neck then return body[1] * 1.08, body[2] * 1.08, body[3] * 1.08, 1 end
+      if style == "ptera" and y < 13 then return accent[1], accent[2], accent[3], 1 end
+      if (x + y) % 7 == 0 then return body[1] * 0.78, body[2] * 0.78, body[3] * 0.78, 1 end
+      return body[1], body[2], body[3], 1
+    end)
+  end
+  local newDinos = {
+    parasaur = {{0.45, 0.67, 0.34}, {0.75, 0.82, 0.38}, "parasaur"},
+    trike = {{0.43, 0.57, 0.31}, {0.82, 0.68, 0.36}, "trike"},
+    stego = {{0.34, 0.57, 0.43}, {0.84, 0.48, 0.27}, "stego"},
+    bronto = {{0.62, 0.55, 0.34}, {0.82, 0.72, 0.48}, "bronto"},
+    carno = {{0.68, 0.31, 0.22}, {0.92, 0.58, 0.25}, "carno"},
+    ptera = {{0.48, 0.43, 0.65}, {0.77, 0.65, 0.86}, "ptera"},
+  }
+  for kind, data in pairs(newDinos) do
+    S[kind] = makeDino(data[1], data[2], data[3])
+    S.anim[kind] = {walk = {S[kind], S[kind]}, idle = {S[kind]}}
   end
   layout()
   for _ = 1, 260 do
@@ -845,7 +900,7 @@ local function getEntries()
         buttons = {{label = un and "ИЗУЧЕНО" or "ИЗУЧИТЬ", ok = (not un) and lvOk and ptOk, fn = function() unlock(e) end}}}
     end
   elseif tab == 4 then
-    for _, kind in ipairs({"dodo", "raptor", "rex"}) do
+    for _, kind in ipairs({"dodo", "parasaur", "trike", "stego", "bronto", "raptor", "carno", "ptera", "rex"}) do
       local def = MOBDEF[kind]
       list[#list + 1] = {icon = S[def.spr], title = def.name,
         lines = {{"Появится рядом с вами.", 1, 1, 1}, {"Приручённый не нападает и идёт за вами.", .8, .8, .8}},
@@ -1002,7 +1057,7 @@ local function updateMob(m, dt, night)
       local k = m.ride * 0.8
       vx, vy = (player.x - m.x) / d * k, (player.y - m.y) / d * k
     end
-  elseif m.kind == "dodo" then
+  elseif m.diet == "herb" then
     if m.hit > 0 then
       vx, vy = (m.x - player.x) / math.max(d, 1) * m.spd, (m.y - player.y) / math.max(d, 1) * m.spd
     else
@@ -1326,12 +1381,28 @@ function love.draw()
   lg.setColor(0.28, 0.62, 0.28)
   lg.rectangle("fill", 32, 32, WORLD - 64, WORLD - 64, 24)
 
+  -- Отдельные природные зоны большого острова.
+  lg.setColor(0.72, 0.63, 0.39)
+  lg.rectangle("fill", 1320, 32, 848, 850, 28) -- сухое плато
+  lg.setColor(0.30, 0.38, 0.27)
+  lg.rectangle("fill", 1320, 1010, 848, 1158, 28) -- болотистые низины
+  lg.setColor(0.48, 0.49, 0.43)
+  lg.rectangle("fill", 32, 32, 570, 560, 28) -- каменистое нагорье
+  lg.setColor(0.38, 0.54, 0.30)
+  lg.rectangle("fill", 70, 70, 485, 465, 24)
+
   local vw, vh = W / Z / 2 + 30, H / Z / 2 + 30
   local function vis(x, y) return math.abs(x - player.x) < vw and math.abs(y - player.y) < vh end
 
   for _, p in ipairs(patches) do
     if vis(p.x, p.y) and p.x > 40 and p.y > 40 and p.x < WORLD - 60 and p.y < WORLD - 50 then
-      if p.l == 1 then lg.setColor(0.33, 0.68, 0.30) else lg.setColor(0.22, 0.54, 0.24) end
+      if p.x > 1320 and p.y < 900 then
+        if p.l == 1 then lg.setColor(0.78, 0.69, 0.45) else lg.setColor(0.66, 0.56, 0.34) end
+      elseif p.x > 1320 and p.y > 1010 then
+        if p.l == 1 then lg.setColor(0.36, 0.45, 0.30) else lg.setColor(0.25, 0.34, 0.23) end
+      elseif p.x < 610 and p.y < 600 then
+        if p.l == 1 then lg.setColor(0.48, 0.55, 0.39) else lg.setColor(0.40, 0.47, 0.34) end
+      elseif p.l == 1 then lg.setColor(0.33, 0.68, 0.30) else lg.setColor(0.22, 0.54, 0.24) end
       lg.rectangle("fill", p.x, p.y, p.w, p.h, 4)
     end
   end
