@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Мини-игра: Уклоняйся!</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101827;color:#f3f6ff;font:16px system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;padding:16px}
+main{width:min(94vw,640px);text-align:center}h1{margin:0 0 8px;font-size:clamp(22px,5vw,32px)}p{color:#bdc8df;margin:6px 0 14px}
+canvas{display:block;width:100%;background:#18243a;border:2px solid #536783;border-radius:12px;touch-action:none}
+button{margin:12px 5px 0;padding:11px 20px;border:0;border-radius:9px;background:#5c8cff;color:white;font-weight:700;font-size:16px}
+#score{font-weight:700;color:#9fc0ff}
+</style>
+</head>
+<body>
+<main>
+<h1>Уклоняйся!</h1>
+<p>Управляй синим квадратом: стрелки ← → или касайся левой и правой стороны поля. Избегай красных блоков.</p>
+<p>Счёт: <span id="score">0</span></p>
+<canvas id="game" width="600" height="420" aria-label="Игровое поле"></canvas>
+<button id="start">Начать заново</button>
+<p id="message">Нажми «Начать заново», чтобы играть.</p>
+</main>
+<script>
+(()=>{
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const scoreEl=document.getElementById('score'),message=document.getElementById('message');
+const startBtn=document.getElementById('start');
+const player={x:280,y:365,w:40,h:40,speed:6};
+let blocks=[],score=0,running=false,keys={},last=0,spawn=0,raf=0;
+function reset(){
+ cancelAnimationFrame(raf);player.x=280;blocks=[];score=0;spawn=0;last=0;running=true;
+ scoreEl.textContent='0';message.textContent='Поехали!';raf=requestAnimationFrame(loop);
+}
+function end(){running=false;message.textContent='Игра окончена! Твой счёт: '+score+'. Нажми кнопку, чтобы попробовать ещё раз.'}
+function loop(t){
+ if(!running)return;
+ const dt=Math.min((t-last)/16.67||1,2);last=t;
+ if(keys.ArrowLeft||keys.a)player.x-=player.speed*dt;
+ if(keys.ArrowRight||keys.d)player.x+=player.speed*dt;
+ player.x=Math.max(0,Math.min(canvas.width-player.w,player.x));
+ spawn+=dt;
+ if(spawn>34){spawn=0;const w=25+Math.random()*35;blocks.push({x:Math.random()*(canvas.width-w),y:-45,w,h:22+Math.random()*24,s:2.4+Math.min(score/150,3)});}
+ for(const b of blocks)b.y+=b.s*dt;
+ blocks=blocks.filter(b=>b.y<canvas.height+50);
+ for(const b of blocks)if(player.x<b.x+b.w&&player.x+player.w>b.x&&player.y<b.y+b.h&&player.y+player.h>b.y){end();draw();return;}
+ score+=Math.floor(dt);scoreEl.textContent=score;
+ draw();raf=requestAnimationFrame(loop);
+}
+function draw(){
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.strokeStyle='#283b59';ctx.lineWidth=1;
+ for(let x=0;x<canvas.width;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+ for(let y=0;y<canvas.height;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+ ctx.fillStyle='#55a7ff';ctx.fillRect(player.x,player.y,player.w,player.h);
+ ctx.fillStyle='#ff5c67';for(const b of blocks)ctx.fillRect(b.x,b.y,b.w,b.h);
+}
+window.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();keys[e.key]=true});
+window.addEventListener('keyup',e=>keys[e.key]=false);
+canvas.addEventListener('pointerdown',e=>{const r=canvas.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*canvas.width;keys.ArrowLeft=x<canvas.width/2;keys.ArrowRight=x>=canvas.width/2;});
+canvas.addEventListener('pointerup',()=>{keys.ArrowLeft=false;keys.ArrowRight=false});
+canvas.addEventListener('pointerleave',()=>{keys.ArrowLeft=false;keys.ArrowRight=false});
+startBtn.addEventListener('click',reset);draw();
+})();
+</script>
+</body>
+</html>
