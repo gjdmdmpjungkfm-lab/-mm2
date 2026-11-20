@@ -17,6 +17,7 @@ local researchDone = {}
 local raidCooldown = 3
 local dragging = false
 local dragLastX, dragLastY = 0, 0
+local pressX, pressY = 0, 0
 local mapSeed = 9137
 local screenW, screenH = 960, 640
 
@@ -105,7 +106,7 @@ local function newWorld()
         {kind="bed",x=cx+2,y=cy+2,hp=55}
     }
     world.stock.wood=world.stock.wood-18
-    camera.x, camera.y = cx*TILE, cy*TILE
+    camera.x, camera.y = (cx-0.5)*TILE, (cy-0.5)*TILE
     day,hour,speed,research=1,8,1,0
     researchDone={}
     raidCooldown=3
@@ -372,7 +373,8 @@ local function drawUI()
         love.graphics.setColor(0.06,0.08,0.1,0.96); love.graphics.rectangle("fill",10,66,190,260,8,8)
         love.graphics.setColor(1,1,1); love.graphics.print("BUILD",22,76)
         local i=0
-        for id,def in pairs(BUILDINGS) do
+        for _,id in ipairs({"wall","bed","stockpile","farm","workshop","medbay","beacon"}) do
+            local def=BUILDINGS[id]
             i=i+1
             love.graphics.setColor(0.18,0.22,0.25); love.graphics.rectangle("fill",18,98+i*30,174,26,4,4)
             love.graphics.setColor(1,1,1); love.graphics.print(def.name,25,102+i*30)
@@ -459,12 +461,12 @@ local function handleTap(x,y)
         end
     end
     if ui.panel=="build" and x<205 and y>98 then
-        local idx=math.floor((y-99)/30)
+        local idx=math.floor((y-99)/30)+1
         local list={"wall","bed","stockpile","farm","workshop","medbay","beacon"}
         if list[idx] then ui.mode="place:"..list[idx]; notify("Tap an empty tile to place "..BUILDINGS[list[idx]].name..".") end
         return
     elseif ui.panel=="research" and x<320 and y>110 then
-        local idx=math.floor((y-97)/42)
+        local idx=math.floor((y-97)/42)+1
         local t=TECH[idx]
         if t and not researchDone[t.id] then
             if research>=t.cost then research=research-t.cost; researchDone[t.id]=true; notify(t.name.." researched.")
@@ -508,13 +510,13 @@ end
 
 function love.mousepressed(x,y,button)
     if button==1 then
-        dragging=true; dragLastX,dragLastY=x,y
+        dragging=true; dragLastX,dragLastY=x,y; pressX,pressY=x,y
     end
 end
 
 function love.mousereleased(x,y,button)
     if button==1 then
-        if dragging and math.abs(x-dragLastX)+math.abs(y-dragLastY)<10 then handleTap(x,y) end
+        if dragging and math.abs(x-pressX)+math.abs(y-pressY)<10 then handleTap(x,y) end
         dragging=false
     end
 end
