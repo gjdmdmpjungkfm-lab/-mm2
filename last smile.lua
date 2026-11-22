@@ -40,6 +40,7 @@ local function nearestAvailableNight(n)
   return 1
 end
 local nightReveal, titleTaps, titleTapT, subTaps, subTapT = false, 0, 0, 0, 0
+local devNightTaps, devNightTapT = 0, 0 -- скрытый переход разработчика на 6-ю ночь
 local menuSel = 1 -- пункт меню со стрелкой ">>" (1 новая игра, 2 продолжить, 3 выбор ночи, 4 настройки, 5 выход)
 local gallery = {who = "remy", room = 1, scare = false, t = 0}
 local G
@@ -2865,6 +2866,23 @@ end
 
 local function pressMenu(x, y)
   local ML = menuLayout()
+  -- скрытый переход разработчика: 5 быстрых нажатий в нижнем правом углу запускают 6-ю ночь
+  if hit(x, y, 286, 168, 34, 12) then
+    if clock - devNightTapT > 1.5 then devNightTaps = 0 end
+    devNightTapT = clock
+    devNightTaps = devNightTaps + 1
+    if devNightTaps >= 5 then
+      devNightTaps = 0
+      CUSTOM = nil
+      night = 6
+      selNight = 6
+      nightReveal = false
+      MENU_CONF = nil
+      play("beep", 1, 1.2)
+      startNight() -- штатно откроет архив перед началом 6-й ночи
+    end
+    return
+  end
   -- секрет: 5 быстрых нажатий на название открывают/прячут выбор ночи
   if hit(x, y, 10, 6, 104, 54) then
     if clock - titleTapT > 1.2 then titleTaps = 0 end
