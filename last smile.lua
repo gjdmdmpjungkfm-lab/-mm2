@@ -3220,20 +3220,6 @@ function drawArchive()
       T("СЕКРЕТНО", fx + 12, fy + 66, 52, {1, .75, .7}, 5)
       if A.read[i] then T("ПРОЧИТАНО", fx + 70, fy + 66, 48, {.35, .85, .45}, 5, nil, "left") end
     end
-    -- топор Майлза, оставленный на столе рядом с документами
-    lg.setColor(.025, .018, .014, .65)
-    lg.setLineWidth(5)
-    lg.line(35, 145, 73, 169)
-    lg.setColor(.38, .22, .12)
-    lg.setLineWidth(3)
-    lg.line(35, 144, 73, 168)
-    lg.setColor(.48, .5, .48)
-    lg.polygon("fill", 29, 140, 43, 139, 48, 147, 42, 154, 34, 150)
-    lg.setColor(.72, .74, .7)
-    lg.line(30, 141, 40, 140, 45, 146)
-    lg.setColor(.22, .13, .08)
-    lg.setLineWidth(1)
-    lg.line(35, 145, 73, 169)
     -- мелочи на столе: кольцо от чашки, ключ
     lg.setColor(.04, .025, .015, .6); lg.circle("line", 160, 140, 7)
     R(150, 132, 14, 2, {.55, .5, .3})
